@@ -103,5 +103,15 @@ namespace CbBuild.Xrm.FakeData
                 LogInfo("Connection has changed to: {0}", detail.WebApplicationUrl);
             }
         }
+
+        private void treeView1_AfterSelect(object sender, TreeViewEventArgs e)
+        {
+
+        }
+
+        private void comboBox1_SelectedIndexChanged(object sender, EventArgs e)
+        {
+
+        }
     }
 }

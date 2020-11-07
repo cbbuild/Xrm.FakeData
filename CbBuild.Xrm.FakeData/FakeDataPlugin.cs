@@ -9,6 +9,8 @@ using XrmToolBox.Extensibility.Interfaces;
 
 namespace CbBuild.Xrm.FakeData
 {
+    //https://github.com/MscrmTools/XrmToolBox/wiki/Develop-your-own-custom-plugin-for-XrmToolBox#Common-logic
+
     // Do not forget to update version number and author (company attribute) in AssemblyInfo.cs class
     // To generate Base64 string for Images below, you can use https://www.base64-image.de/
     [Export(typeof(IXrmToolBoxPlugin)),
@@ -36,6 +38,8 @@ namespace CbBuild.Xrm.FakeData
             // If you have external assemblies that you need to load, uncomment the following to 
             // hook into the event that will fire when an Assembly fails to resolve
             // AppDomain.CurrentDomain.AssemblyResolve += new ResolveEventHandler(AssemblyResolveEventHandler);
+
+            
         }
 
         /// <summary>

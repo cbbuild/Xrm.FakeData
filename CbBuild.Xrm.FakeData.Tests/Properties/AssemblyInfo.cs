@@ -5,11 +5,11 @@ using System.Runtime.InteropServices;
 // General Information about an assembly is controlled through the following 
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
-[assembly: AssemblyTitle("CbBuild.Xrm.FakeData")]
+[assembly: AssemblyTitle("CbBuild.Xrm.FakeData.Tests")]
 [assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("")]
-[assembly: AssemblyProduct("CbBuild.Xrm.FakeData")]
+[assembly: AssemblyProduct("CbBuild.Xrm.FakeData.Tests")]
 [assembly: AssemblyCopyright("Copyright ©  2020")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
@@ -20,7 +20,7 @@ using System.Runtime.InteropServices;
 [assembly: ComVisible(false)]
 
 // The following GUID is for the ID of the typelib if this project is exposed to COM
-[assembly: Guid("e0704e9d-a5ee-4eb3-8fe1-2b5a788eb550")]
+[assembly: Guid("73abeaaf-d1dc-437b-bd25-914341686757")]
 
 // Version information for an assembly consists of the following four values:
 //
