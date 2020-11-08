@@ -3,12 +3,15 @@ using Bogus;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Dynamic;
 using System.Globalization;
 using System.Linq;
 using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows.Forms;
+using static System.Windows.Forms.VisualStyles.VisualStyleElement;
 
 namespace CbBuild.Xrm.FakeData.Presenter
 {
@@ -130,6 +133,28 @@ namespace CbBuild.Xrm.FakeData.Presenter
         }
     }
 
+    public enum RuleOperator
+    {
+        Concat,
+        Add,
+        Sub,
+        Multiply,
+        Div,
+        Mod
+    }
+
+
+
+
+
+  
+    // -- selected node
+    // -- w tag ma presenter (tutaj to będzie pewnie rule)
+    //....
+
+    // przeciażenie noda, i podpiecie sie pod event rula (child rule added/removed)
+    // rule changed (INotifypropertychanged)
+
     public class FakeDataPresenter
     {
         public int Prop1 { get; set; }
@@ -139,7 +164,13 @@ namespace CbBuild.Xrm.FakeData.Presenter
             //JObject obj = new JObject();
 
             var faker = new DynamicFaker("en", new MyBinder())
-                .RuleFor("propName", f => f.Person.FirstName);
+                .Rules((f, m) =>
+                {
+                    // todo all rles
+                });
+
+           // faker.
+                //.RuleFor("propName", f => f.Person.FirstName);
             
             var d = faker.Generate(3);
 

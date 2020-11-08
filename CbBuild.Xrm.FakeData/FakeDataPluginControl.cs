@@ -14,6 +14,7 @@ using McTools.Xrm.Connection;
 
 namespace CbBuild.Xrm.FakeData
 {
+
     public partial class FakeDataPluginControl : PluginControlBase
     {
         private Settings mySettings;
@@ -21,8 +22,10 @@ namespace CbBuild.Xrm.FakeData
         public FakeDataPluginControl()
         {
             InitializeComponent();
+           // new BindingSource()
+            //tvRules.Nodes.Add()
         }
-
+        
         private void MyPluginControl_Load(object sender, EventArgs e)
         {
             ShowInfoNotification("This is a notification that can lead to XrmToolBox repository", new Uri("https://github.com/MscrmTools/XrmToolBox"));
@@ -110,6 +113,11 @@ namespace CbBuild.Xrm.FakeData
         }
 
         private void comboBox1_SelectedIndexChanged(object sender, EventArgs e)
+        {
+
+        }
+
+        private void bindingSource1_CurrentChanged(object sender, EventArgs e)
         {
 
         }

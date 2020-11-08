@@ -1,4 +1,5 @@
 ﻿using CbBuild.Xrm.FakeData.Presenter;
+using CbBuild.Xrm.FakeData.View.Controls;
 using System;
 using System.Linq;
 using Xunit;
@@ -10,8 +11,15 @@ namespace CbBuild.Xrm.FakeData.Tests
         [Fact]
         public void TestMethod1()
         {
-            FakeDataPresenter p = new FakeDataPresenter();
-            p.x();
+            RulePresenter rootRule = new RulePresenter();
+            TreeViewRuleNode rootNode = new TreeViewRuleNode(rootRule);
+
+            var child = new RulePresenter();
+            rootRule.Add(child);
+            rootRule.Name = "new name";
+
+            child.Name = "child name";
+            //rootRule.
         }
     }
 }
