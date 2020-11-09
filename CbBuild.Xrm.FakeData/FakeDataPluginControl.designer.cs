@@ -32,10 +32,17 @@
             this.tsbClose = new System.Windows.Forms.ToolStripButton();
             this.tssSeparator1 = new System.Windows.Forms.ToolStripSeparator();
             this.tsbSample = new System.Windows.Forms.ToolStripButton();
+            this.pgRuleProperties = new System.Windows.Forms.PropertyGrid();
             this.tvRules = new System.Windows.Forms.TreeView();
-            this.comboBox1 = new System.Windows.Forms.ComboBox();
-            this.treeView1 = new System.Windows.Forms.TreeView();
+            this.tableLayoutPanel1 = new System.Windows.Forms.TableLayoutPanel();
+            this.splitContainer1 = new System.Windows.Forms.SplitContainer();
+            this.txtPreview = new System.Windows.Forms.RichTextBox();
             this.toolStripMenu.SuspendLayout();
+            this.tableLayoutPanel1.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).BeginInit();
+            this.splitContainer1.Panel1.SuspendLayout();
+            this.splitContainer1.Panel2.SuspendLayout();
+            this.splitContainer1.SuspendLayout();
             this.SuspendLayout();
             // 
             // toolStripMenu
@@ -48,7 +55,7 @@
             this.toolStripMenu.Location = new System.Drawing.Point(0, 0);
             this.toolStripMenu.Name = "toolStripMenu";
             this.toolStripMenu.Padding = new System.Windows.Forms.Padding(0, 0, 2, 0);
-            this.toolStripMenu.Size = new System.Drawing.Size(746, 27);
+            this.toolStripMenu.Size = new System.Drawing.Size(1026, 31);
             this.toolStripMenu.TabIndex = 4;
             this.toolStripMenu.Text = "toolStrip1";
             // 
@@ -73,44 +80,82 @@
             this.tsbSample.Text = "Try me";
             this.tsbSample.Click += new System.EventHandler(this.tsbSample_Click);
             // 
+            // pgRuleProperties
+            // 
+            this.pgRuleProperties.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.pgRuleProperties.Location = new System.Drawing.Point(95, 3);
+            this.pgRuleProperties.Name = "pgRuleProperties";
+            this.pgRuleProperties.Size = new System.Drawing.Size(244, 632);
+            this.pgRuleProperties.TabIndex = 8;
+            // 
             // tvRules
             // 
-            this.tvRules.Location = new System.Drawing.Point(21, 30);
+            this.tvRules.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.tvRules.Location = new System.Drawing.Point(3, 3);
             this.tvRules.Name = "tvRules";
-            this.tvRules.Size = new System.Drawing.Size(291, 230);
-            this.tvRules.TabIndex = 5;
-            this.tvRules.AfterSelect += new System.Windows.Forms.TreeViewEventHandler(this.treeView1_AfterSelect);
+            this.tvRules.Size = new System.Drawing.Size(86, 632);
+            this.tvRules.TabIndex = 11;
+            this.tvRules.AfterSelect += new System.Windows.Forms.TreeViewEventHandler(this.tvRules_AfterSelect);
             // 
-            // comboBox1
+            // tableLayoutPanel1
             // 
-            this.comboBox1.FormattingEnabled = true;
-            this.comboBox1.Location = new System.Drawing.Point(468, 108);
-            this.comboBox1.Name = "comboBox1";
-            this.comboBox1.Size = new System.Drawing.Size(212, 24);
-            this.comboBox1.TabIndex = 6;
-            this.comboBox1.SelectedIndexChanged += new System.EventHandler(this.comboBox1_SelectedIndexChanged);
+            this.tableLayoutPanel1.ColumnCount = 2;
+            this.tableLayoutPanel1.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 100F));
+            this.tableLayoutPanel1.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Absolute, 250F));
+            this.tableLayoutPanel1.Controls.Add(this.tvRules, 0, 0);
+            this.tableLayoutPanel1.Controls.Add(this.pgRuleProperties, 1, 0);
+            this.tableLayoutPanel1.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.tableLayoutPanel1.Location = new System.Drawing.Point(0, 0);
+            this.tableLayoutPanel1.Name = "tableLayoutPanel1";
+            this.tableLayoutPanel1.RowCount = 1;
+            this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 100F));
+            this.tableLayoutPanel1.Size = new System.Drawing.Size(342, 638);
+            this.tableLayoutPanel1.TabIndex = 12;
             // 
-            // treeView1
+            // splitContainer1
             // 
-            this.treeView1.Location = new System.Drawing.Point(602, 171);
-            this.treeView1.Name = "treeView1";
-            this.treeView1.Size = new System.Drawing.Size(121, 97);
-            this.treeView1.TabIndex = 7;
+            this.splitContainer1.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.splitContainer1.Location = new System.Drawing.Point(0, 31);
+            this.splitContainer1.Name = "splitContainer1";
+            // 
+            // splitContainer1.Panel1
+            // 
+            this.splitContainer1.Panel1.Controls.Add(this.tableLayoutPanel1);
+            // 
+            // splitContainer1.Panel2
+            // 
+            this.splitContainer1.Panel2.Controls.Add(this.txtPreview);
+            this.splitContainer1.Size = new System.Drawing.Size(1026, 638);
+            this.splitContainer1.SplitterDistance = 342;
+            this.splitContainer1.TabIndex = 13;
+            // 
+            // txtPreview
+            // 
+            this.txtPreview.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.txtPreview.Location = new System.Drawing.Point(0, 0);
+            this.txtPreview.Name = "txtPreview";
+            this.txtPreview.ReadOnly = true;
+            this.txtPreview.Size = new System.Drawing.Size(680, 638);
+            this.txtPreview.TabIndex = 0;
+            this.txtPreview.Text = "";
             // 
             // FakeDataPluginControl
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 16F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.Controls.Add(this.treeView1);
-            this.Controls.Add(this.comboBox1);
-            this.Controls.Add(this.tvRules);
+            this.Controls.Add(this.splitContainer1);
             this.Controls.Add(this.toolStripMenu);
             this.Margin = new System.Windows.Forms.Padding(4);
             this.Name = "FakeDataPluginControl";
-            this.Size = new System.Drawing.Size(746, 370);
+            this.Size = new System.Drawing.Size(1026, 669);
             this.Load += new System.EventHandler(this.MyPluginControl_Load);
             this.toolStripMenu.ResumeLayout(false);
             this.toolStripMenu.PerformLayout();
+            this.tableLayoutPanel1.ResumeLayout(false);
+            this.splitContainer1.Panel1.ResumeLayout(false);
+            this.splitContainer1.Panel2.ResumeLayout(false);
+            ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).EndInit();
+            this.splitContainer1.ResumeLayout(false);
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -121,8 +166,10 @@
         private System.Windows.Forms.ToolStripButton tsbClose;
         private System.Windows.Forms.ToolStripButton tsbSample;
         private System.Windows.Forms.ToolStripSeparator tssSeparator1;
+        private System.Windows.Forms.PropertyGrid pgRuleProperties;
         private System.Windows.Forms.TreeView tvRules;
-        private System.Windows.Forms.ComboBox comboBox1;
-        private System.Windows.Forms.TreeView treeView1;
+        private System.Windows.Forms.TableLayoutPanel tableLayoutPanel1;
+        private System.Windows.Forms.SplitContainer splitContainer1;
+        private System.Windows.Forms.RichTextBox txtPreview;
     }
 }

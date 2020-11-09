@@ -1,4 +1,5 @@
 ﻿using CbBuild.Xrm.FakeData.Presenter;
+using CbBuild.Xrm.FakeData.Presenter.Rules;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -11,8 +12,8 @@ namespace CbBuild.Xrm.FakeData.View.Controls
 {
     internal class TreeViewRuleNode : TreeNode
     {
-        public RulePresenter Rule => this.Tag as RulePresenter;
-        public TreeViewRuleNode(RulePresenter rule)
+        public IRulePresenter Rule => this.Tag as IRulePresenter;
+        public TreeViewRuleNode(IRulePresenter rule)
         {
             this.Tag = rule;
             UpdateBinding();

@@ -4,7 +4,6 @@ using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
-using System.Dynamic;
 using System.Globalization;
 using System.Linq;
 using System.Reflection;
@@ -38,25 +37,6 @@ namespace CbBuild.Xrm.FakeData.Presenter
         Vehicle
     }
 
-    public class Magic : DynamicObject
-    {
-        Dictionary<string, object> values = new Dictionary<string, object>();
-
-        public override bool TryGetMember(GetMemberBinder binder, out object result)
-        {
-            return values.TryGetValue(binder.Name, out result);
-            //return base.TryGetMember(binder, out result);
-        }
-
-        public override bool TrySetMember(SetMemberBinder binder, object value)
-        {
-            values[binder.Name] = value;
-
-            return true;
-           // return base.TrySetMember(binder, value);
-        }
-    }
-
     public class MyField : FieldInfo
     {
         public override RuntimeFieldHandle FieldHandle => throw new NotImplementedException();
@@ -65,7 +45,9 @@ namespace CbBuild.Xrm.FakeData.Presenter
 
         public override FieldAttributes Attributes => throw new NotImplementedException();
 
-        public override string Name => "propName";
+        private string name;
+
+        public override string Name => name;
 
         public override Type DeclaringType => throw new NotImplementedException();
 
@@ -91,9 +73,14 @@ namespace CbBuild.Xrm.FakeData.Presenter
             throw new NotImplementedException();
         }
 
+        public MyField(string name)
+        {
+            this.name = name;
+        }
+
         public override void SetValue(object obj, object value, BindingFlags invokeAttr, System.Reflection.Binder binder, CultureInfo culture)
         {
-            ((dynamic)obj).propName = value;
+            ((dynamic)obj)[name] = value;
             //this.value = value;
         }
     }
@@ -101,12 +88,16 @@ namespace CbBuild.Xrm.FakeData.Presenter
     // TODO Binder ma zwrócić wyklikane propertisy, dodatkowo moze zwrocic typ itp?
     public class MyBinder : IBinder
     {
+        private readonly Dictionary<string, MemberInfo> dict;
+
+        public MyBinder(IEnumerable<string> attributes)
+        {
+            dict = new Dictionary<string, MemberInfo>(attributes.ToDictionary(s => s, s => (MemberInfo) new MyField(s)));
+        }
+
         public Dictionary<string, MemberInfo> GetMembers(Type t)
         {
-            return new Dictionary<string, MemberInfo>()
-            {
-                { "propName", new MyField() }
-            };
+            return dict;
         }
     }
 
@@ -133,21 +124,11 @@ namespace CbBuild.Xrm.FakeData.Presenter
         }
     }
 
-    public enum RuleOperator
-    {
-        Concat,
-        Add,
-        Sub,
-        Multiply,
-        Div,
-        Mod
-    }
 
 
 
 
 
-  
     // -- selected node
     // -- w tag ma presenter (tutaj to będzie pewnie rule)
     //....
@@ -157,25 +138,25 @@ namespace CbBuild.Xrm.FakeData.Presenter
 
     public class FakeDataPresenter
     {
-        public int Prop1 { get; set; }
+        //public int Prop1 { get; set; }
 
-        public void x()
-        {
-            //JObject obj = new JObject();
+        //public void x()
+        //{
+        //    //JObject obj = new JObject();
 
-            var faker = new DynamicFaker("en", new MyBinder())
-                .Rules((f, m) =>
-                {
-                    // todo all rles
-                });
+        //    var faker = new DynamicFaker("en", new MyBinder())
+        //        .Rules((f, m) =>
+        //        {
+        //            // todo all rles
+        //        });
 
-           // faker.
-                //.RuleFor("propName", f => f.Person.FirstName);
+        //   // faker.
+        //        //.RuleFor("propName", f => f.Person.FirstName);
             
-            var d = faker.Generate(3);
+        //    var d = faker.Generate(3);
 
-            //AutoFaker<FakeDataPresenter> g = new AutoFaker<FakeDataPresenter>()
-            //    .RuleFor("Prop1", f => f.Address.Locale )
-        }
+        //    //AutoFaker<FakeDataPresenter> g = new AutoFaker<FakeDataPresenter>()
+        //    //    .RuleFor("Prop1", f => f.Address.Locale )
+        //}
     }
 }

@@ -11,9 +11,14 @@ using XrmToolBox.Extensibility;
 using Microsoft.Xrm.Sdk.Query;
 using Microsoft.Xrm.Sdk;
 using McTools.Xrm.Connection;
+using CbBuild.Xrm.FakeData.View.Controls;
+using CbBuild.Xrm.FakeData.Presenter;
+using CbBuild.Xrm.FakeData.Model;
+using CbBuild.Xrm.FakeData.Presenter.Rules;
 
 namespace CbBuild.Xrm.FakeData
 {
+    //https://www.c-sharpcorner.com/blogs/perform-drag-and-drop-operation-on-treeview-node-in-c-sharp-net
 
     public partial class FakeDataPluginControl : PluginControlBase
     {
@@ -22,8 +27,44 @@ namespace CbBuild.Xrm.FakeData
         public FakeDataPluginControl()
         {
             InitializeComponent();
-           // new BindingSource()
-            //tvRules.Nodes.Add()
+
+            IRuleFactory factory = new RuleFactory();
+
+            var contactRule = factory.Create("Contact");
+            var nodeRoot = new TreeViewRuleNode(contactRule);
+            tvRules.Nodes.Add(nodeRoot);
+
+            var id = contactRule.Add("pwc_id");
+            id.Operator = RuleOperator.Concat;
+
+
+            id.Add("prefix_");
+            id.Add("indx"); // TODO gen
+            id.Add("_suffix");
+
+            var result = contactRule.Evaluate().Result;
+
+            //RulePresenter rootRule = new RulePresenter("Root");
+            //TreeViewRuleNode rootNode = new TreeViewRuleNode(rootRule);
+
+
+
+            //rootRule.Add(new RulePresenter() { Name = "asdf2" });
+            //rootRule.Add(new RulePresenter("asdf22"));
+            //var r = new RulePresenter("XX");
+            //rootRule.Add(r);
+
+            //r.Add(new RulePresenter("Sub"));
+            //// new BindingSource()
+            ////tvRules.Nodes.Add()
+            tvRules.ExpandAll();
+
+            //r.Name = "XXXX5";
+
+            //tvRules.AllowDrop = true;
+
+            //pgRuleProperties.SelectedObject = r;
+
         }
         
         private void MyPluginControl_Load(object sender, EventArgs e)
@@ -118,6 +159,21 @@ namespace CbBuild.Xrm.FakeData
         }
 
         private void bindingSource1_CurrentChanged(object sender, EventArgs e)
+        {
+
+        }
+
+        private void dockPanel1_ActiveContentChanged(object sender, EventArgs e)
+        {
+
+        }
+
+        private void tvRules_AfterSelect(object sender, TreeViewEventArgs e)
+        {
+
+        }
+
+        private void dockPanel1_ActiveContentChanged_1(object sender, EventArgs e)
         {
 
         }
