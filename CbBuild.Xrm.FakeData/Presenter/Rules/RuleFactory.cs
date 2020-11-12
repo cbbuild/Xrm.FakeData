@@ -1,55 +1,64 @@
-﻿using System;
+﻿using CbBuild.Xrm.FakeData.Common;
+using CbBuild.Xrm.FakeData.View.Controls;
+using Reactive.EventAggregator;
+using System;
 
 namespace CbBuild.Xrm.FakeData.Presenter.Rules
 {
     public interface IRuleFactory
     {
-        IRulePresenter Create(IRulePresenter parent, string name = "");
-
-        IRulePresenter Create(string name = "");
+        IRulePresenter Create(IRulePresenter parent = null);
     }
 
     public class RuleFactory : IRuleFactory
     {
-        private static Type _attributeRuleType = typeof(AttributeRulePresenter);
-        private static Type _entityRuleType = typeof(EntityRulePresenter);
-        private static Type _operationRuleType = typeof(OperationRulePresenter);
+        private readonly IContainerGetter containerGetter;
+        private readonly IEventAggregator eventAggregator;
 
-        public IRulePresenter Create(IRulePresenter parent, string name = "")
+        public RuleFactory(IContainerGetter containerGetter, IEventAggregator eventAggregator)
         {
-            if (parent == null)
-            {
-                return new EntityRulePresenter(this, name ?? "Entity rule");
-            }
+            this.containerGetter = containerGetter;
+            this.eventAggregator = eventAggregator;
+        }
 
-            var parentType = parent.GetType();
+        public IRulePresenter Create(IRulePresenter parent)
+        {
             IRulePresenter rule = null;
 
-            if (parentType == _operationRuleType)
+            if (parent == null)
             {
-                rule = new OperationRulePresenter(this, name ?? "New sub-operation");
+                rule = containerGetter.Get<GeneratorRulePresenter>();
+                rule.Name = "Fake Data Generator";
             }
-            else if (parentType == _attributeRuleType)
+            else if (parent.RuleType == RulePresenterType.Operation)
             {
-                rule = new OperationRulePresenter(this, name ?? "New operation");
+                rule = containerGetter.Get<OperationRulePresenter>();
+                rule.Name = "New sub-operation";
             }
-            else if (parentType == _entityRuleType)
+            else if (parent.RuleType == RulePresenterType.Attribute)
             {
-                rule = new AttributeRulePresenter(this, name ?? "New attribute rule");
+                rule = containerGetter.Get<OperationRulePresenter>();
+                rule.Name = "New operation";
+            }
+            else if (parent.RuleType == RulePresenterType.Entity)
+            {
+                rule = containerGetter.Get<AttributeRulePresenter>();
+                rule.Name = "New attribute rule";
+            }
+            else if (parent.RuleType == RulePresenterType.Root)
+            {
+                rule = containerGetter.Get<EntityRulePresenter>();
+                rule.Name = "Entity rule";
             }
 
             if (rule != null)
             {
-                rule.Parent = parent;
+                var ruleNode = containerGetter.Get<ITreeViewRuleNode>();
+                rule.Init(ruleNode, this, eventAggregator);
                 return rule;
             }
 
             throw new ArgumentException("Not supported parent type", nameof(parent));
-        }
-
-        public IRulePresenter Create(string name = "")
-        {
-            return this.Create(null, name);
         }
     }
 }

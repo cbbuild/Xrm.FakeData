@@ -101,7 +101,7 @@ namespace CbBuild.Xrm.FakeData.Presenter
         }
     }
 
-    public class DynamicFaker : Faker<Magic>
+    public class DynamicFaker : Faker<FakeEntity>
     {
         public DynamicFaker()
         {

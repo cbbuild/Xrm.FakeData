@@ -6,6 +6,11 @@ using System.Collections.Generic;
 using System.Reflection;
 using XrmToolBox.Extensibility;
 using XrmToolBox.Extensibility.Interfaces;
+using Grace.DependencyInjection;
+using CbBuild.Xrm.FakeData.Common;
+using Reactive.EventAggregator;
+using CbBuild.Xrm.FakeData.View.Controls;
+using CbBuild.Xrm.FakeData.Presenter.Rules;
 
 namespace CbBuild.Xrm.FakeData
 {
@@ -27,7 +32,8 @@ namespace CbBuild.Xrm.FakeData
     {
         public override IXrmToolBoxPluginControl GetControl()
         {
-            return new FakeDataPluginControl();
+            var container = CreateContainer();
+            return new FakeDataPluginControl(container);
         }
 
         /// <summary>
@@ -37,9 +43,25 @@ namespace CbBuild.Xrm.FakeData
         {
             // If you have external assemblies that you need to load, uncomment the following to 
             // hook into the event that will fire when an Assembly fails to resolve
-            // AppDomain.CurrentDomain.AssemblyResolve += new ResolveEventHandler(AssemblyResolveEventHandler);
+            AppDomain.CurrentDomain.AssemblyResolve += new ResolveEventHandler(AssemblyResolveEventHandler);
 
             
+        }
+
+        private DependencyInjectionContainer CreateContainer()
+        {
+            var container = new DependencyInjectionContainer();
+            var containerGetter = new ContainerGetter(container);
+
+            container.Configure(c =>
+            {
+                c.Export<EventAggregator>().As<IEventAggregator>().Lifestyle.Singleton();
+                c.Export<TreeViewRuleNode>().As<ITreeViewRuleNode>();
+                c.Export<RuleFactory>().As<IRuleFactory>();
+                c.ExportInstance<IContainerGetter>(containerGetter).Lifestyle.Singleton();
+            });
+           
+            return container;
         }
 
         /// <summary>

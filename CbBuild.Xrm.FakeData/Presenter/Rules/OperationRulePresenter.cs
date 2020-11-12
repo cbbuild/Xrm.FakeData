@@ -1,9 +1,13 @@
-﻿namespace CbBuild.Xrm.FakeData.Presenter.Rules
+﻿using CbBuild.Xrm.FakeData.Descriptors;
+using System.ComponentModel;
+
+namespace CbBuild.Xrm.FakeData.Presenter.Rules
 {
+    [TypeDescriptionProvider(typeof(RulePresenterTypeDescriptorProvider))]
     public class OperationRulePresenter : RulePresenter
     {
-        public OperationRulePresenter(IRuleFactory factory, string name) : base(factory, name)
-        {
-        }
+        public override string DisplayName => $"[{Operator}] {Name}".Trim();
+
+        public override RulePresenterType RuleType => RulePresenterType.Operation;
     }
 }

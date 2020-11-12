@@ -1,20 +1,13 @@
-﻿using Bogus;
-using CbBuild.Xrm.FakeData.Model;
-using CbBuild.Xrm.FakeData.RuleExecutors;
+﻿using CbBuild.Xrm.FakeData.Model;
+using CbBuild.Xrm.FakeData.View.Controls;
+using Reactive.EventAggregator;
 using System;
+using System.Collections.Generic;
 using System.ComponentModel;
-using System.Linq;
 using System.Runtime.CompilerServices;
 
 namespace CbBuild.Xrm.FakeData.Presenter.Rules
 {
-    public enum RuleOutputType
-    {
-        Xml,
-        Text,
-        Money
-    }
-
     public interface IRulePresenter : INotifyPropertyChanged
     {
         IRulePresenter Add(string name);
@@ -27,20 +20,39 @@ namespace CbBuild.Xrm.FakeData.Presenter.Rules
 
         IRulePresenter Add(RuleOperator ruleOperator);
 
-        IRulePresenter Parent { get; set; }
         string Name { get; set; }
-        BindingList<IRulePresenter> Rules { get; } // TODO: jakos to ukryc
-
-        EvaluateResult Evaluate(Faker<Magic> faker = null);
+        string DisplayName { get; }
 
         RuleOperator Operator { get; set; }
         FakeOperator Generator { get; set; }
-        object Value { get; set; }
+
+        object this[string propertyName] { get; set; }
+
+        RulePresenterType RuleType { get; }
+
+        void Init(ITreeViewRuleNode view, IRuleFactory ruleFactory, IEventAggregator eventAggregator);
+
+        ITreeViewRuleNode View
+        {
+            get;
+        }
     }
 
-    public class RulePresenter : IRulePresenter
+    public enum RulePresenterType
     {
-        public bool IsRoot => Parent == null;
+        Root,
+        Entity,
+        Attribute,
+        Operation
+    }
+
+    // [TypeDescriptionProvider(typeof(RulePresenterTypeDescriptorProvider))]
+    public abstract class RulePresenter : IRulePresenter
+    {
+        protected IEventAggregator EventAggregator { get; private set; }
+
+        [Browsable(false)]
+        public abstract RulePresenterType RuleType { get; }
 
         private string _name;
         private RuleOperator _operator = RuleOperator.Generator;
@@ -51,9 +63,12 @@ namespace CbBuild.Xrm.FakeData.Presenter.Rules
             set
             {
                 _name = value;
+                View.SetName(value);
                 NotifyPropertyChanged();
             }
         }
+
+        public abstract string DisplayName { get; }
 
         // This method is called by the Set accessor of each property.
         // The CallerMemberName attribute that is applied to the optional propertyName
@@ -67,14 +82,34 @@ namespace CbBuild.Xrm.FakeData.Presenter.Rules
 
         //public Type Type { get; set; }
         [Browsable(false)]
-        public BindingList<IRulePresenter> Rules { get; private set; }
+        protected BindingList<IRulePresenter> Rules { get; private set; }
 
-        [Browsable(false)]
-        public IRulePresenter Parent { get; set; }
+        //[Browsable(false)]
+        //public IRulePresenter Parent { get; set; }
 
         public RuleOperator Operator { get => _operator; set => _operator = value; }
         public FakeOperator Generator { get; set; }
         public object Value { get; set; }
+
+        private Dictionary<string, object> parameters = new Dictionary<string, object>();
+
+        public object this[string propertyName]
+        {
+            get
+            {
+                if (parameters.TryGetValue(propertyName, out object value))
+                {
+                    return value;
+                }
+                return null;
+            }
+            set
+            {
+                parameters[propertyName] = value;
+            }
+        }
+
+        public ITreeViewRuleNode View { get; private set; }
         public IRuleFactory _ruleFactory;
 
         public event PropertyChangedEventHandler PropertyChanged;
@@ -84,70 +119,12 @@ namespace CbBuild.Xrm.FakeData.Presenter.Rules
         // ATTRIBUT LEVEL // AttributeRule
         // RULES LEVEL // RUle
 
-        // TODO Evaluate jest do wycieca, zastapione bedzie executorem
-        public EvaluateResult Evaluate(Faker<Magic> faker = null)
-        {
-            if (this.GetType() == typeof(EntityRulePresenter))
-            {
-                var attributes = Rules.Select(r => r.Name);
-                faker = new Faker<Magic>(locale: "pl", new MyBinder(attributes));
-                IRuleExecutorFactory executorFactory = new RuleExecutorFactory();
-
-                foreach (var rule in Rules)
-                {
-                    faker.RuleFor(rule.Name, f =>
-                    {
-                        // TODO: fakera chyba nie trzeba przekazywac jesli sam go bedzie tworzyl dla rooa?
-                        var executor = executorFactory.Create(rule, f);
-                        return executor.Execute();
-                        //return rule.Evaluate(faker).Result; //TODO errors
-                    });
-                }
-
-                return new EvaluateResult() { Result = faker.Generate(3).ToArray() };
-            }
-
-            // TODO: generator zwroc value (Fakeowe lub const), reszta to skompiluj childy
-            if (this.GetType() == typeof(AttributeRulePresenter) || this.GetType() == typeof(RulePresenter))
-            {
-                if (Operator == RuleOperator.Generator)
-                {
-                    return new EvaluateResult() { Result = "value" };
-                }
-                else // complex rule
-                {
-                    //concat itp
-                }
-            }
-
-            //if(isAttribute)
-            //{
-            //    faker.RuleFor(Name, f =>
-            //    {
-            //    })
-            //    //for property
-            //    foreach (var child in Rules)
-            //    {
-            //        child.Evaluate(faker, isAttribute);
-            //    }
-            //}else
-            //{
-            //}
-
-            return new EvaluateResult();
-
-            //return faker;
-        }
-
-        public RulePresenter(IRuleFactory ruleFactory)
+        public void Init(ITreeViewRuleNode view, IRuleFactory ruleFactory, IEventAggregator eventAggregator)
         {
             Rules = new BindingList<IRulePresenter>();
+            this.View = view;
             _ruleFactory = ruleFactory;
-        }
-
-        public RulePresenter(IRuleFactory factory, string name) : this(factory)
-        {
-            Name = name;
+            EventAggregator = eventAggregator;
         }
 
         virtual public IRulePresenter Add(string name = null, object value = null)
@@ -157,8 +134,8 @@ namespace CbBuild.Xrm.FakeData.Presenter.Rules
                 throw new Exception("Rule factory not initialized");
             }
 
-            var newRule = _ruleFactory.Create(this, name);
-            newRule.Value = value;
+            var newRule = _ruleFactory.Create(this);
+            newRule["value"] = value;
 
             Rules.Add(newRule);
 

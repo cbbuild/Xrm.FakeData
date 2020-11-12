@@ -73,12 +73,12 @@ namespace CbBuild.Xrm.FakeData.RuleExecutors
             public override object Execute()
             {
                 StringBuilder sb = new StringBuilder();
-                foreach (var child in rule.Rules)
-                {
-                    var childExecutor = factory.Create(child, faker);
-                    var childResut = childExecutor.Execute();
-                    sb.Append(childResut);
-                }
+                //foreach (var child in rule.Rules)
+                //{
+                //    var childExecutor = factory.Create(child, faker);
+                //    var childResut = childExecutor.Execute();
+                //    sb.Append(childResut);
+                //}
                 return sb.ToString();
             }
         }
@@ -89,7 +89,7 @@ namespace CbBuild.Xrm.FakeData.RuleExecutors
             {
                 public override object Execute()
                 {
-                    return rule.Value;
+                    return rule["value"];
                 }
             }
 

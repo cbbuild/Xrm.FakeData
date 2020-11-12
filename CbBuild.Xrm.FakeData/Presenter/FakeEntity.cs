@@ -9,7 +9,7 @@ namespace CbBuild.Xrm.FakeData.Presenter
 {
     // TODO, przeorać, tutaj wystarczy klasa z dictionary i helperem do serializacji??
     // dynamic moze byc latwiej serializowany
-    public class Magic : DynamicObject, IXmlSerializable
+    public class FakeEntity : DynamicObject, IXmlSerializable
     {
         Dictionary<string, object> values = new Dictionary<string, object>();
 

@@ -10,16 +10,22 @@ using System.Windows.Forms;
 
 namespace CbBuild.Xrm.FakeData.View.Controls
 {
-    internal class TreeViewRuleNode : TreeNode
+    public interface ITreeViewRuleNode
+    {
+        void SetName(string name);
+
+    }
+
+    internal class TreeViewRuleNode : TreeNode, IDisposable, ITreeViewRuleNode
     {
         public IRulePresenter Rule => this.Tag as IRulePresenter;
-        public TreeViewRuleNode(IRulePresenter rule)
+        public TreeViewRuleNode()
         {
-            this.Tag = rule;
-            UpdateBinding();
-            rule.Rules.ListChanged += ChildRules_ListChanged;
-            // todo addtional on property change
-            rule.PropertyChanged += Rule_PropertyChanged;
+            //this.Tag = rule;
+            //UpdateBinding();
+            //rule.Rules.ListChanged += ChildRules_ListChanged;
+            //// todo addtional on property change
+            //rule.PropertyChanged += Rule_PropertyChanged;
         }
 
         private void Rule_PropertyChanged(object sender, PropertyChangedEventArgs e)
@@ -29,7 +35,7 @@ namespace CbBuild.Xrm.FakeData.View.Controls
 
         internal void UpdateBinding()
         {
-            this.Text = Rule.Name;
+            this.Text = Rule.DisplayName;
             //this.ToolTipText = ""
             //this.BackColor
             //this.ForeColor
@@ -82,14 +88,32 @@ namespace CbBuild.Xrm.FakeData.View.Controls
 
         private void AddNode(ListChangedEventArgs e)
         {
-            var newRule = Rule.Rules[e.NewIndex];
-            var newNode = new TreeViewRuleNode(newRule);
-            this.Nodes.Add(newNode);
+            //var newRule = Rule.Rules[e.NewIndex];
+            //var newNode = new TreeViewRuleNode(newRule);
+            //this.Nodes.Add(newNode);
+            //newNode.Expand();
+            //// TODO gdzie focus? przeniesc to wyzej?
         }
 
         private void ResetNodes(ListChangedEventArgs e)
         {
             throw new NotImplementedException();
+        }
+
+        public void Dispose()
+        {
+            Rule.PropertyChanged -= Rule_PropertyChanged;
+            // todo collection unregister
+
+            foreach (var child in Nodes)
+            {
+                ((IDisposable)child).Dispose();
+            }
+        }
+
+        public void SetName(string name)
+        {
+            Name = name;
         }
     }
 }

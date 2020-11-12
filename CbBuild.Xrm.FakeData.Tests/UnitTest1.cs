@@ -17,7 +17,9 @@ namespace CbBuild.Xrm.FakeData.Tests
         {
             IRuleFactory factory = new RuleFactory();
 
-            var contactRule = factory.Create("Contact");
+            var root = factory.Create();
+
+            var contactRule = root.Add("Contact");
             var id = contactRule.Add("pwc_id", RuleOperator.Concat);
 
             //.Add("asdf", "RuleOperator")
@@ -43,11 +45,14 @@ namespace CbBuild.Xrm.FakeData.Tests
             var c2 = id.Add(" ", RuleOperator.Generator, FakeOperator.Const);
             var c3 = id.Add(10, RuleOperator.Generator, FakeOperator.Const);
             var c4 = id.Add("indx", RuleOperator.Generator, FakeOperator.Index);
-           
 
-            var result = contactRule.Evaluate().Result;
 
-            XmlSerializer serializer = new XmlSerializer(result.GetType(), new XmlRootAttribute(contactRule.Name));
+            var entities = ((GeneratorRulePresenter)root).Generate();
+
+
+            var result = entities.Result;
+
+           XmlSerializer serializer = new XmlSerializer(result.GetType(), new XmlRootAttribute(root.Name));
 
             string r;
 
@@ -60,6 +65,7 @@ namespace CbBuild.Xrm.FakeData.Tests
             // serializacja bedzie raczej tylko dla preview, xml/csv
 
             //import na początek po service, moze kiedys datamaps
+
 
         }
     }
