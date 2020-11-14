@@ -1,4 +1,4 @@
-﻿namespace CbBuild.Xrm.FakeData.Presenter.Rules
+﻿namespace CbBuild.Xrm.FakeData.Presenters.Rules
 {
     public class EvaluateResult
     {

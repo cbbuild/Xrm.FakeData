@@ -1,24 +1,18 @@
-﻿using CbBuild.Xrm.FakeData.Model;
-using CbBuild.Xrm.FakeData.View.Controls;
+﻿using CbBuild.Xrm.FakeData.Events;
+using CbBuild.Xrm.FakeData.Model;
+using CbBuild.Xrm.FakeData.Views;
 using Reactive.EventAggregator;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Reactive.Linq;
 using System.Runtime.CompilerServices;
 
-namespace CbBuild.Xrm.FakeData.Presenter.Rules
+namespace CbBuild.Xrm.FakeData.Presenters.Rules
 {
-    public interface IRulePresenter : INotifyPropertyChanged
+    public interface IRulePresenter : INotifyPropertyChanged, IDisposable
     {
-        IRulePresenter Add(string name);
-
-        IRulePresenter Add(string name, RuleOperator ruleOperator);
-
-        IRulePresenter Add(string name, object value, RuleOperator ruleOperator, FakeOperator generator);
-
-        IRulePresenter Add(object value, RuleOperator ruleOperator, FakeOperator generator);
-
-        IRulePresenter Add(RuleOperator ruleOperator);
+        IRulePresenter Add();
 
         string Name { get; set; }
         string DisplayName { get; }
@@ -30,9 +24,9 @@ namespace CbBuild.Xrm.FakeData.Presenter.Rules
 
         RulePresenterType RuleType { get; }
 
-        void Init(ITreeViewRuleNode view, IRuleFactory ruleFactory, IEventAggregator eventAggregator);
+        void Init(ITreeNodeView view, IRuleFactory ruleFactory, IEventAggregator eventAggregator, IRuleEditView ruleEditView);
 
-        ITreeViewRuleNode View
+        ITreeNodeView View
         {
             get;
         }
@@ -63,8 +57,7 @@ namespace CbBuild.Xrm.FakeData.Presenter.Rules
             set
             {
                 _name = value;
-                View.SetName(value);
-                NotifyPropertyChanged();
+                Bind();
             }
         }
 
@@ -109,8 +102,9 @@ namespace CbBuild.Xrm.FakeData.Presenter.Rules
             }
         }
 
-        public ITreeViewRuleNode View { get; private set; }
+        public ITreeNodeView View { get; private set; }
         public IRuleFactory _ruleFactory;
+        private List<IDisposable> _subscriptions = new List<IDisposable>();
 
         public event PropertyChangedEventHandler PropertyChanged;
 
@@ -119,15 +113,51 @@ namespace CbBuild.Xrm.FakeData.Presenter.Rules
         // ATTRIBUT LEVEL // AttributeRule
         // RULES LEVEL // RUle
 
-        public void Init(ITreeViewRuleNode view, IRuleFactory ruleFactory, IEventAggregator eventAggregator)
+        public void Init(ITreeNodeView view, IRuleFactory ruleFactory, IEventAggregator eventAggregator, IRuleEditView ruleEditView)
         {
             Rules = new BindingList<IRulePresenter>();
             this.View = view;
             _ruleFactory = ruleFactory;
             EventAggregator = eventAggregator;
+
+            Bind();
+
+            _subscriptions.AddRange(new[]
+            {
+                 eventAggregator.GetEvent<NewChildNodeRequestedEvent>()
+                    .Where(n => n.ParentId == this.View?.Id)
+                    .Subscribe(n =>
+                    {
+                        this.Add(); // TODO inna metoda?
+                    }),
+                 eventAggregator.GetEvent<DeleteNodeRequestedEvent>()
+                    .Where(n => n.Id == this.View?.Id)
+                    .Subscribe(n =>
+                    {
+                        // TODO messege prompt ask?
+                        if(this.RuleType == RulePresenterType.Root)
+                        {
+                            // send msg can't delete root
+                        }else
+                        {
+                            this.Dispose();
+                        }
+                    }), // TODO zmien nazwe eventa RuleNodeSelected?
+                 eventAggregator.GetEvent<NodeSelectedEvent>()
+                    .Where(n => n.Id == this.View?.Id)
+                    .Subscribe(n =>
+                    {
+                        ruleEditView.SelectedRule = this;
+                    })
+            });
         }
 
-        virtual public IRulePresenter Add(string name = null, object value = null)
+        private void Bind()
+        {
+            this.View?.SetText(this.DisplayName);
+        }
+
+        virtual public IRulePresenter Add()
         {
             if (_ruleFactory == null)
             {
@@ -135,45 +165,28 @@ namespace CbBuild.Xrm.FakeData.Presenter.Rules
             }
 
             var newRule = _ruleFactory.Create(this);
-            newRule["value"] = value;
 
             Rules.Add(newRule);
+            this.View?.AddChild(newRule.View, focus: true, expand: true);
 
             return newRule;
         }
 
-        public IRulePresenter Add(string name)
+        public void Dispose()
         {
-            var r = Add(name, null);
-            return r;
-        }
+            foreach (var sub in _subscriptions)
+            {
+                sub.Dispose();
+            }
+            _subscriptions.Clear();
 
-        public IRulePresenter Add(string name, RuleOperator ruleOperator)
-        {
-            var r = Add(name);
-            r.Operator = ruleOperator;
-            return r;
-        }
+            this.View.Dispose();
 
-        public IRulePresenter Add(string name, object value, RuleOperator ruleOperator, FakeOperator generator)
-        {
-            var r = Add(name, value);
-            r.Operator = ruleOperator;
-            r.Generator = generator;
-            return r;
-        }
-
-        public IRulePresenter Add(object value, RuleOperator ruleOperator, FakeOperator generator)
-        {
-            var r = Add(null, value, ruleOperator, generator);
-            return r;
-        }
-
-        // chaining?
-        public IRulePresenter Add(RuleOperator ruleOperator)
-        {
-            var r = Add(null, ruleOperator);
-            return r;
+            foreach (var childRule in this.Rules)
+            {
+                childRule.Dispose();
+            }
+            this.Rules.Clear();
         }
     }
 }

@@ -1,9 +1,9 @@
 ﻿using CbBuild.Xrm.FakeData.Common;
-using CbBuild.Xrm.FakeData.View.Controls;
+using CbBuild.Xrm.FakeData.Views;
 using Reactive.EventAggregator;
 using System;
 
-namespace CbBuild.Xrm.FakeData.Presenter.Rules
+namespace CbBuild.Xrm.FakeData.Presenters.Rules
 {
     public interface IRuleFactory
     {
@@ -53,8 +53,9 @@ namespace CbBuild.Xrm.FakeData.Presenter.Rules
 
             if (rule != null)
             {
-                var ruleNode = containerGetter.Get<ITreeViewRuleNode>();
-                rule.Init(ruleNode, this, eventAggregator);
+                var ruleNode = containerGetter.Get<ITreeNodeView>();
+                var ruleEditView = containerGetter.Get<IRuleEditView>();
+                rule.Init(ruleNode, this, eventAggregator, ruleEditView);
                 return rule;
             }
 

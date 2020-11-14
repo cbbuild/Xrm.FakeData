@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace CbBuild.Xrm.FakeData.Presenter
+namespace CbBuild.Xrm.FakeData.Presenters
 {
     class PersonRulePresenter
     {

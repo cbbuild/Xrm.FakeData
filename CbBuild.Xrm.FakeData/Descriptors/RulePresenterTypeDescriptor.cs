@@ -1,4 +1,4 @@
-﻿using CbBuild.Xrm.FakeData.Presenter.Rules;
+﻿using CbBuild.Xrm.FakeData.Presenters.Rules;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;

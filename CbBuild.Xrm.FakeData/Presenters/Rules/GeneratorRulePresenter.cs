@@ -1,6 +1,6 @@
 ﻿using Bogus;
 using CbBuild.Xrm.FakeData.RuleExecutors;
-using CbBuild.Xrm.FakeData.View.Controls;
+using CbBuild.Xrm.FakeData.Views;
 using Reactive.EventAggregator;
 using System;
 using System.Collections.Generic;
@@ -8,7 +8,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace CbBuild.Xrm.FakeData.Presenter.Rules
+namespace CbBuild.Xrm.FakeData.Presenters.Rules
 {
     internal class GeneratorRulePresenter : RulePresenter
     {

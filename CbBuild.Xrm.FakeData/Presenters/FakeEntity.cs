@@ -5,7 +5,7 @@ using System.Xml;
 using System.Xml.Schema;
 using System.Xml.Serialization;
 
-namespace CbBuild.Xrm.FakeData.Presenter
+namespace CbBuild.Xrm.FakeData.Presenters
 {
     // TODO, przeorać, tutaj wystarczy klasa z dictionary i helperem do serializacji??
     // dynamic moze byc latwiej serializowany

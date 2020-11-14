@@ -12,7 +12,7 @@ using System.Threading.Tasks;
 using System.Windows.Forms;
 using static System.Windows.Forms.VisualStyles.VisualStyleElement;
 
-namespace CbBuild.Xrm.FakeData.Presenter
+namespace CbBuild.Xrm.FakeData.Presenters
 {
     public enum FakeType
     {

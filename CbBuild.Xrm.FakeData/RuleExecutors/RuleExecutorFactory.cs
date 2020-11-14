@@ -1,6 +1,6 @@
 ﻿using Bogus;
 using CbBuild.Xrm.FakeData.Model;
-using CbBuild.Xrm.FakeData.Presenter.Rules;
+using CbBuild.Xrm.FakeData.Presenters.Rules;
 using System;
 using System.Text;
 

@@ -1,26 +1,17 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Drawing;
+﻿using CbBuild.Xrm.FakeData.Events;
+using CbBuild.Xrm.FakeData.Presenters.Rules;
+using CbBuild.Xrm.FakeData.Views;
+using McTools.Xrm.Connection;
+using Microsoft.Xrm.Sdk;
+using Microsoft.Xrm.Sdk.Query;
+using Reactive.EventAggregator;
+using System;
 using System.Data;
+using System.Drawing;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System.Reactive.Linq;
 using System.Windows.Forms;
 using XrmToolBox.Extensibility;
-using Microsoft.Xrm.Sdk.Query;
-using Microsoft.Xrm.Sdk;
-using McTools.Xrm.Connection;
-using CbBuild.Xrm.FakeData.View.Controls;
-using CbBuild.Xrm.FakeData.Presenter;
-using CbBuild.Xrm.FakeData.Model;
-using CbBuild.Xrm.FakeData.Presenter.Rules;
-using Reactive.EventAggregator;
-using System.Reactive.Linq;
-using Grace.DependencyInjection;
-using Grace.DependencyInjection.Lifestyle;
-using Grace.Factory;
-using CbBuild.Xrm.FakeData.Common;
 
 namespace CbBuild.Xrm.FakeData
 {
@@ -29,55 +20,30 @@ namespace CbBuild.Xrm.FakeData
     public partial class FakeDataPluginControl : PluginControlBase
     {
         private Settings mySettings;
-        IRuleFactory factory = null;
+        private IRuleFactory ruleFactory = null;
+        private readonly IRuleEditView ruleEditView;
+        private IEventAggregator eventAggregator = null;
 
-
-        public FakeDataPluginControl(DependencyInjectionContainer container)
+        // TODO Z DI
+        public FakeDataPluginControl(IEventAggregator eventAggregator, IRuleFactory ruleFactory, IRuleEditView ruleEditView)
         {
             InitializeComponent();
 
-            factory = container.Locate<IRuleFactory>();
-            var rootRule = factory.Create();
+            var ruleEditControl = ruleEditView.ToControl();
+            this.tableLayoutPanel1.Controls.Add(ruleEditControl);
+            ruleEditControl.Dock = DockStyle.Fill;
+
+            this.eventAggregator = eventAggregator;
+
+            // TODO: ten rule factory jeszcze stąd wywalić jakos
+            this.ruleFactory = ruleFactory;
+            this.ruleEditView = ruleEditView;
+            var rootRule = this.ruleFactory.Create();
             tvRules.Nodes.Add(rootRule.View as TreeNode);
-            
 
-
-          ////  var result = contactRule.Evaluate().Result;
-
-          //  //RulePresenter rootRule = new RulePresenter("Root");
-          //  //TreeViewRuleNode rootNode = new TreeViewRuleNode(rootRule);
-
-
-
-          //  //rootRule.Add(new RulePresenter() { Name = "asdf2" });
-          //  //rootRule.Add(new RulePresenter("asdf22"));
-          //  //var r = new RulePresenter("XX");
-          //  //rootRule.Add(r);
-
-          //  //r.Add(new RulePresenter("Sub"));
-          //  //// new BindingSource()
-          //  ////tvRules.Nodes.Add()
-          //  tvRules.ExpandAll();
-
-          //  //r.Name = "XXXX5";
-
-          //  //tvRules.AllowDrop = true;
-          //  tvRules.BeforeSelect += TvRules_BeforeSelect;
-          //  tvRules.AfterSelect += TvRules_AfterSelect;
-          //  //      pgRuleProperties.SelectedObject = contactRule;
-
-          //  tvRules.SelectedNode = nodeRoot;
-          //  tvRules.HideSelection = false;
-
-            //http://introtorx.com/Content/v1.0.10621.0/03_LifetimeManagement.html#Finalizers
-//
-
-  //          Observable.FromEvent<TreeViewEventHandler, TreeViewEventArgs>(handler => tvRules.AfterSelect += handler, handler => tvRules.AfterSelect -= handler);
+            tvRules.HideSelection = false;
+            tvRules.AfterSelect += TvRules_AfterSelect;
         }
-
-
-
-
 
         public class NodeUpdatedEvent
         {
@@ -97,41 +63,30 @@ namespace CbBuild.Xrm.FakeData
 
         private void TvRules_BeforeSelect(object sender, TreeViewCancelEventArgs e)
         {
-            
         }
 
-        TreeNode lastSelected;
+        private TreeNode lastSelected;
+
         private void TvRules_MouseDown(object sender, MouseEventArgs e)
         {
             if (tvRules.SelectedNode == null) return;
             tvRules.SelectedNode = null;
-           // throw new NotImplementedException();
+            // throw new NotImplementedException();
         }
 
-        private void TvRules_MouseClick(object sender, MouseEventArgs e)
-        {
-            //e.
-            //TreeView treeView = sender as TreeView;
-            //if (treeView != null)
-            //{
-            //    TreeViewItem item = (TreeViewItem)treeView.SelectedItem;
-            //    item.IsSelected = false;
-            //    treeView.Focus();
-            //}
-        }
-
-       
         private void TvRules_AfterSelect(object sender, TreeViewEventArgs e)
         {
-            if(lastSelected != null)
+            if (lastSelected != null)
             {
                 lastSelected.NodeFont = new Font(tvRules.Font, FontStyle.Regular);
             }
             lastSelected = e.Node;
             e.Node.NodeFont = new Font(tvRules.Font, FontStyle.Bold);
             e.Node.Text = e.Node.Text; // Fix for truncated text
+            /// this.ruleEditView.SelectedRule = 
             //.Node.BackColor = Color.AntiqueWhite;
-            pgRuleProperties.SelectedObject = e.Node.Tag;
+            //pgRuleProperties.SelectedObject = e.Node.Tag;
+            this.eventAggregator.Publish(new NodeSelectedEvent(((ITreeNodeView)e.Node).Id));
         }
 
         private void MyPluginControl_Load(object sender, EventArgs e)
@@ -215,22 +170,21 @@ namespace CbBuild.Xrm.FakeData
             }
         }
 
-
-        private void button1_Click(object sender, EventArgs e)
+        private void btnAdd_Click(object sender, EventArgs e)
         {
-            if(tvRules.SelectedNode == null)
+            var node = tvRules.SelectedNode as ITreeNodeView;
+            if (node != null)
             {
-                var rule = factory.Create();
-                var nodeRoot = new TreeViewRuleNode();
-                tvRules.Nodes.Add(nodeRoot);
-                tvRules.SelectedNode = nodeRoot;
-                nodeRoot.Expand();
-            }else
+                this.eventAggregator.Publish(new NewChildNodeRequestedEvent(node.Id));
+            }
+        }
+
+        private void btnDelete_Click(object sender, EventArgs e)
+        {
+            var node = tvRules.SelectedNode as ITreeNodeView;
+            if (node != null)
             {
-               // tvRules.SelectedNode.Expand();
-                (tvRules.SelectedNode.Tag as IRulePresenter)
-                    .Add("new");
-                tvRules.SelectedNode.Expand();
+                this.eventAggregator.Publish(new DeleteNodeRequestedEvent(node.Id));
             }
         }
     }

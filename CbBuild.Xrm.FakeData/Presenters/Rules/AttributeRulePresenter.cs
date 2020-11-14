@@ -1,7 +1,7 @@
 ﻿using CbBuild.Xrm.FakeData.Descriptors;
 using System.ComponentModel;
 
-namespace CbBuild.Xrm.FakeData.Presenter.Rules
+namespace CbBuild.Xrm.FakeData.Presenters.Rules
 {
     [TypeDescriptionProvider(typeof(RulePresenterTypeDescriptorProvider))]
     public class AttributeRulePresenter : RulePresenter

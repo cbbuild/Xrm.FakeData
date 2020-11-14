@@ -1,6 +1,6 @@
-﻿namespace CbBuild.Xrm.FakeData.View
+﻿namespace CbBuild.Xrm.FakeData.Views
 {
-    partial class PersonRuleControl
+    partial class RuleEditView
     {
         /// <summary> 
         /// Required designer variable.
@@ -28,10 +28,30 @@
         /// </summary>
         private void InitializeComponent()
         {
-            components = new System.ComponentModel.Container();
+            this.pgRuleEdit = new System.Windows.Forms.PropertyGrid();
+            this.SuspendLayout();
+            // 
+            // pgRuleEdit
+            // 
+            this.pgRuleEdit.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.pgRuleEdit.Location = new System.Drawing.Point(0, 0);
+            this.pgRuleEdit.Name = "pgRuleEdit";
+            this.pgRuleEdit.Size = new System.Drawing.Size(439, 452);
+            this.pgRuleEdit.TabIndex = 0;
+            // 
+            // RuleEditView
+            // 
+            this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 16F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
+            this.Controls.Add(this.pgRuleEdit);
+            this.Name = "RuleEditView";
+            this.Size = new System.Drawing.Size(439, 452);
+            this.ResumeLayout(false);
+
         }
 
         #endregion
+
+        private System.Windows.Forms.PropertyGrid pgRuleEdit;
     }
 }
