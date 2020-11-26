@@ -12,12 +12,17 @@ jobs:
     runs-on: windows-latest
 
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v1
+      name: Checkout Code
+      
+    - name: Setup MSBuild Path
+      uses: warrenbuckley/Setup-MSBuild@v1
+      
     - name: Setup Nuget.exe
-      uses: warrenbuckley/Setup-Nuget@v1
+      uses: warrenbuckley/Setup-Nuget@v1.0.2
+    
     - name: Restore packages
-      run: nuget restore Xrm.FakeData\CbBuild.Xrm.FakeData.sln
-    - name: Setup MSBuild.exe
-      run: warrenbuckley/Setup-MSBuild@v1
+      run: nuget restore CbBuild.Xrm.FakeData.sln
+    
     - name: Build with MSBuild
       run: msbuild Xrm.FakeData\CbBuild.Xrm.FakeData.sln -p:Configuration=Release
