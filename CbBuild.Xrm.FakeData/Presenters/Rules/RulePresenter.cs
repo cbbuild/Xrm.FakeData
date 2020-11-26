@@ -94,7 +94,6 @@ namespace CbBuild.Xrm.FakeData.Presenters.Rules
         protected BindingList<IRulePresenter> Rules { get; private set; }
 
         //[Browsable(false)]
-        //public IRulePresenter Parent { get; set; }
 
         public RuleOperator Operator { get => _operator; set => _operator = value; }
         public FakeOperator Generator { get; set; }
