@@ -10,8 +10,16 @@ namespace CbBuild.Xrm.FakeData.Descriptors
             DataType = dataType;
         }
 
+        public RuleParameter(string name) 
+            : this(name, typeof(string))
+        {
+
+        }
+
         public string Name { get; private set; }
 
         public Type DataType { get; private set; }
+
+        public string Category { get; set; } = "Parameters";
     }
 }

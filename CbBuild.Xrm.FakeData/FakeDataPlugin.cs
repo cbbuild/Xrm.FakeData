@@ -1,16 +1,13 @@
-﻿using System;
+﻿using CbBuild.Xrm.FakeData.Ioc;
+using Grace.DependencyInjection;
+using System;
+using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.IO;
 using System.Linq;
-using System.Collections.Generic;
 using System.Reflection;
 using XrmToolBox.Extensibility;
 using XrmToolBox.Extensibility.Interfaces;
-using Grace.DependencyInjection;
-using CbBuild.Xrm.FakeData.Common;
-using Reactive.EventAggregator;
-using CbBuild.Xrm.FakeData.Views;
-using CbBuild.Xrm.FakeData.Presenters.Rules;
 
 namespace CbBuild.Xrm.FakeData
 {
@@ -40,37 +37,29 @@ namespace CbBuild.Xrm.FakeData
         }
 
         /// <summary>
-        /// Constructor 
+        /// Constructor
         /// </summary>
         public FakeDataPlugin()
         {
-            // If you have external assemblies that you need to load, uncomment the following to 
+            // If you have external assemblies that you need to load, uncomment the following to
             // hook into the event that will fire when an Assembly fails to resolve
-            AppDomain.CurrentDomain.AssemblyResolve += new ResolveEventHandler(AssemblyResolveEventHandler);            
+            AppDomain.CurrentDomain.AssemblyResolve += new ResolveEventHandler(AssemblyResolveEventHandler);
         }
 
         private DependencyInjectionContainer CreateContainer()
         {
             var container = new DependencyInjectionContainer();
-            var containerGetter = new ContainerGetter(container);
+            var serviceLocator = new ServiceLocator(container);
 
-            container.Configure(c =>
-            {
-                c.Export<EventAggregator>().As<IEventAggregator>().Lifestyle.Singleton();
-                c.Export<TreeNodeView>().As<ITreeNodeView>();
-                c.Export<RuleFactory>().As<IRuleFactory>();
-                c.ExportInstance<IContainerGetter>(containerGetter).Lifestyle.Singleton();
-                c.Export<RuleEditView>().As<IRuleEditView>().Lifestyle.Singleton();
-                c.Export<MessageBoxService>().As<IMessageBoxService>().Lifestyle.Singleton();
-            });
-           
+            container.Configure(new DiConfigurationModule(serviceLocator));
+
             return container;
         }
 
         /// <summary>
         /// Event fired by CLR when an assembly reference fails to load
         /// Assumes that related assemblies will be loaded from a subfolder named the same as the Plugin
-        /// For example, a folder named Sample.XrmToolBox.MyPlugin 
+        /// For example, a folder named Sample.XrmToolBox.MyPlugin
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="args"></param>

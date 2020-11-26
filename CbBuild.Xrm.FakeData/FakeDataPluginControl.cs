@@ -1,20 +1,20 @@
 ﻿using CbBuild.Xrm.FakeData.Events;
+using CbBuild.Xrm.FakeData.Ioc;
+using CbBuild.Xrm.FakeData.Model;
 using CbBuild.Xrm.FakeData.Presenters.Rules;
 using CbBuild.Xrm.FakeData.Views;
 using McTools.Xrm.Connection;
 using Microsoft.Xrm.Sdk;
+using Microsoft.Xrm.Sdk.Messages;
 using Microsoft.Xrm.Sdk.Query;
 using Reactive.EventAggregator;
 using System;
-using System.Data;
-using System.Drawing;
-using System.Linq;
-using System.Reactive.Linq;
 using System.Windows.Forms;
 using XrmToolBox.Extensibility;
 
 namespace CbBuild.Xrm.FakeData
 {
+    //https://github.com/MscrmTools/XrmToolBox/blob/master/Plugins/MsCrmTools.SampleTool/SampleTool.cs
     //https://www.c-sharpcorner.com/blogs/perform-drag-and-drop-operation-on-treeview-node-in-c-sharp-net
 
     public partial class FakeDataPluginControl : PluginControlBase
@@ -22,71 +22,44 @@ namespace CbBuild.Xrm.FakeData
         private Settings mySettings;
         private IRuleFactory ruleFactory = null;
         private readonly IRuleEditView ruleEditView;
+        private readonly IRulesTreeView rulesTreeView;
+        private readonly IServiceLocator containerGetter;
         private IEventAggregator eventAggregator = null;
 
-        // TODO Z DI
-        public FakeDataPluginControl(IEventAggregator eventAggregator, IRuleFactory ruleFactory, IRuleEditView ruleEditView)
+        public FakeDataPluginControl(
+            IEventAggregator eventAggregator,
+            IRuleFactory ruleFactory,
+            IRuleEditView ruleEditView,
+            IRulePreviewView rulePreviewView,
+            IRulesTreeView rulesTreeView,
+            IServiceLocator containerGetter)
         {
             InitializeComponent();
+
+            containerGetter.RegisterOrganizationServiceFactory(() => Service);
+
+            var rulesTreeViewControl = rulesTreeView.ToControl();
+            this.tableLayoutPanel1.Controls.Add(rulesTreeViewControl, 0, 0);
+            rulesTreeViewControl.Dock = DockStyle.Fill;
 
             var ruleEditControl = ruleEditView.ToControl();
             this.tableLayoutPanel1.Controls.Add(ruleEditControl);
             ruleEditControl.Dock = DockStyle.Fill;
+
+            var rulePreviewControl = rulePreviewView.ToControl();
+            this.scMain.Panel2.Controls.Add(rulePreviewControl);
+            rulePreviewControl.Dock = DockStyle.Fill;
 
             this.eventAggregator = eventAggregator;
 
             // TODO: ten rule factory jeszcze stąd wywalić jakos
             this.ruleFactory = ruleFactory;
             this.ruleEditView = ruleEditView;
+            this.rulesTreeView = rulesTreeView;
+            this.containerGetter = containerGetter;
             var rootRule = this.ruleFactory.Create();
-            tvRules.Nodes.Add(rootRule.View as TreeNode);
 
-            tvRules.HideSelection = false;
-            tvRules.AfterSelect += TvRules_AfterSelect;
-        }
-
-        public class NodeUpdatedEvent
-        {
-            public string Id { get; set; }
-        }
-
-        public void TESTX()
-        {
-            EventAggregator publisher = new EventAggregator();
-
-            publisher.GetEvent<NodeUpdatedEvent>()
-                .Where(e => e.Id == "uuu")
-                .Subscribe(d => MessageBox.Show("asdf"));
-
-            publisher.Publish(new object());
-        }
-
-        private void TvRules_BeforeSelect(object sender, TreeViewCancelEventArgs e)
-        {
-        }
-
-        private TreeNode lastSelected;
-
-        private void TvRules_MouseDown(object sender, MouseEventArgs e)
-        {
-            if (tvRules.SelectedNode == null) return;
-            tvRules.SelectedNode = null;
-            // throw new NotImplementedException();
-        }
-
-        private void TvRules_AfterSelect(object sender, TreeViewEventArgs e)
-        {
-            if (lastSelected != null)
-            {
-                lastSelected.NodeFont = new Font(tvRules.Font, FontStyle.Regular);
-            }
-            lastSelected = e.Node;
-            e.Node.NodeFont = new Font(tvRules.Font, FontStyle.Bold);
-            e.Node.Text = e.Node.Text; // Fix for truncated text
-            /// this.ruleEditView.SelectedRule = 
-            //.Node.BackColor = Color.AntiqueWhite;
-            //pgRuleProperties.SelectedObject = e.Node.Tag;
-            this.eventAggregator.Publish(new NodeSelectedEvent(((ITreeNodeView)e.Node).Id));
+            rulesTreeView.AddRoot(rootRule.View);
         }
 
         private void MyPluginControl_Load(object sender, EventArgs e)
@@ -172,20 +145,64 @@ namespace CbBuild.Xrm.FakeData
 
         private void btnAdd_Click(object sender, EventArgs e)
         {
-            var node = tvRules.SelectedNode as ITreeNodeView;
-            if (node != null)
+            //  Observable.FromEventPattern(btnAdd)
+            if (rulesTreeView.SelectedNode != null)
             {
-                this.eventAggregator.Publish(new NewChildNodeRequestedEvent(node.Id));
+                this.eventAggregator.Publish(new NewChildNodeRequestedEvent(rulesTreeView.SelectedNode.Id));
             }
         }
 
         private void btnDelete_Click(object sender, EventArgs e)
         {
-            var node = tvRules.SelectedNode as ITreeNodeView;
-            if (node != null)
+            if (rulesTreeView.SelectedNode != null)
             {
-                this.eventAggregator.Publish(new DeleteNodeRequestedEvent(node.Id));
+                this.eventAggregator.Publish(new DeleteNodeRequestedEvent(rulesTreeView.SelectedNode.Id));
             }
+        }
+
+        private void btnPreview_Click(object sender, EventArgs e)
+        {
+            RetrieveMetadata();
+            //if (rulesTreeView.SelectedNode != null)
+            //{
+            //    this.eventAggregator.Publish(new NodePreviewRequestedEvent(rulesTreeView.SelectedNode.Id));
+            //}
+        }
+
+        private void RetrieveMetadata()
+        {
+            //fetchxml uzywa RetrieveMetadataCHangesResponse, a reszte pewnie serializuje lokalnie!
+            // do poczytania!
+            //https://github.com/MicrosoftDocs/dynamics-365-customer-engagement/blob/master/ce/customerengagement/on-premises/developer/retrieve-detect-changes-metadata.md
+            WorkAsync(new WorkAsyncInfo
+            {
+                Message = "Retriving metadata",
+                Work = (worker, args) =>
+                {
+                    //RetrieveAllEntitiesRequest req = new RetrieveAllEntitiesRequest()
+                    //{
+                    //    EntityFilters = Microsoft.Xrm.Sdk.Metadata.EntityFilters.Entity | Microsoft.Xrm.Sdk.Metadata.EntityFilters.Attributes | Microsoft.Xrm.Sdk.Metadata.EntityFilters.Relationships
+                    //};
+                    var req = new RetrieveMetadataChangesRequest();
+                    //args.Result = Service.RetrieveMultiple(new QueryExpression("account")
+                    //{
+                    //    TopCount = 50
+                    //});
+                    args.Result = Service.Execute(req);
+                },
+                PostWorkCallBack = (args) =>
+                {
+                    if (args.Error != null)
+                    {
+                        MessageBox.Show(args.Error.ToString(), "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    }
+                    var result = args.Result as EntityCollection;
+                    if (result != null)
+                    {
+                        MessageBox.Show($"Found {result.Entities.Count} accounts");
+                    }
+                }
+            });
         }
     }
 }

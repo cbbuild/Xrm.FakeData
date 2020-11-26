@@ -9,5 +9,7 @@ namespace CbBuild.Xrm.FakeData.Presenters.Rules
         public override string DisplayName => $"{Name} (pwc_contact)"; // TODO names from metadata
 
         public override RulePresenterType RuleType => RulePresenterType.Entity;
+
+        public override string IconKey => nameof(Icons.entity_24);
     }
 }

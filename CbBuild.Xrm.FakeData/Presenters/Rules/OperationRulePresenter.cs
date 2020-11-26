@@ -9,5 +9,7 @@ namespace CbBuild.Xrm.FakeData.Presenters.Rules
         public override string DisplayName => $"[{Operator}] {Name}".Trim();
 
         public override RulePresenterType RuleType => RulePresenterType.Operation;
+
+        public override string IconKey => nameof(Icons.operation_24);
     }
 }

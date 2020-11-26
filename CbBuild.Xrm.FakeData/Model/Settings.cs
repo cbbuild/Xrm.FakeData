@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace CbBuild.Xrm.FakeData
+namespace CbBuild.Xrm.FakeData.Model
 {
     /// <summary>
     /// This class can help you to store settings for your plugin

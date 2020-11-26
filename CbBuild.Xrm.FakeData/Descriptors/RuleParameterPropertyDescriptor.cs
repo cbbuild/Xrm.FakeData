@@ -1,10 +1,6 @@
 ﻿using CbBuild.Xrm.FakeData.Presenters.Rules;
 using System;
-using System.Collections.Generic;
 using System.ComponentModel;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace CbBuild.Xrm.FakeData.Descriptors
 {
@@ -13,7 +9,7 @@ namespace CbBuild.Xrm.FakeData.Descriptors
         public RuleParameter CustomField { get; private set; }
 
         public RuleParameterPropertyDescriptor(RuleParameter customField)
-            : base(customField.Name, new Attribute[] { new CategoryAttribute("Parameters") })
+            : base(customField.Name, new Attribute[] { new CategoryAttribute(customField.Category) })
         {
             CustomField = customField;
         }
@@ -61,8 +57,8 @@ namespace CbBuild.Xrm.FakeData.Descriptors
 
         public override void SetValue(object component, object value)
         {
-            IRulePresenter title = (IRulePresenter)component;
-            title[CustomField.Name] = value;
+            var rule = (IRulePresenter)component;
+            rule[CustomField.Name] = value;
         }
 
         public override bool ShouldSerializeValue(object component)

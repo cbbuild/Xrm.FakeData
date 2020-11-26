@@ -13,6 +13,11 @@ namespace CbBuild.Xrm.FakeData.Presenters
     {
         Dictionary<string, object> values = new Dictionary<string, object>();
 
+        public FakeEntity()
+        {
+            values["value"] = "jakas tam wartosc";
+        }
+
 
         public override IEnumerable<string> GetDynamicMemberNames()
         {

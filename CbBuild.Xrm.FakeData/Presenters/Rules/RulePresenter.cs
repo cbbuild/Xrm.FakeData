@@ -1,12 +1,15 @@
 ﻿using CbBuild.Xrm.FakeData.Events;
 using CbBuild.Xrm.FakeData.Model;
+using CbBuild.Xrm.FakeData.RuleExecutors;
 using CbBuild.Xrm.FakeData.Views;
 using Reactive.EventAggregator;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.IO;
 using System.Reactive.Linq;
 using System.Runtime.CompilerServices;
+using System.Xml.Serialization;
 
 namespace CbBuild.Xrm.FakeData.Presenters.Rules
 {
@@ -24,7 +27,12 @@ namespace CbBuild.Xrm.FakeData.Presenters.Rules
 
         RulePresenterType RuleType { get; }
 
-        void Init(ITreeNodeView view, IRuleFactory ruleFactory, IEventAggregator eventAggregator, IRuleEditView ruleEditView);
+        void Init(ITreeNodeView view,
+                  IRuleFactory ruleFactory,
+                  IEventAggregator eventAggregator,
+                  IRuleEditView ruleEditView,
+                  IRuleExecutorFactory ruleExecutorFactory,
+                  IRulePreviewView rulePreviewView);
 
         ITreeNodeView View
         {
@@ -48,6 +56,9 @@ namespace CbBuild.Xrm.FakeData.Presenters.Rules
         [Browsable(false)]
         public abstract RulePresenterType RuleType { get; }
 
+        [Browsable(false)]
+        public abstract string IconKey { get; }
+
         private string _name;
         private RuleOperator _operator = RuleOperator.Generator;
 
@@ -61,7 +72,12 @@ namespace CbBuild.Xrm.FakeData.Presenters.Rules
             }
         }
 
+        [Browsable(false)]
         public abstract string DisplayName { get; }
+
+        public RulePresenter()
+        {
+        }
 
         // This method is called by the Set accessor of each property.
         // The CallerMemberName attribute that is applied to the optional propertyName
@@ -82,9 +98,8 @@ namespace CbBuild.Xrm.FakeData.Presenters.Rules
 
         public RuleOperator Operator { get => _operator; set => _operator = value; }
         public FakeOperator Generator { get; set; }
-        public object Value { get; set; }
 
-        private Dictionary<string, object> parameters = new Dictionary<string, object>();
+        private readonly Dictionary<string, object> parameters = new Dictionary<string, object>();
 
         public object this[string propertyName]
         {
@@ -104,7 +119,7 @@ namespace CbBuild.Xrm.FakeData.Presenters.Rules
 
         public ITreeNodeView View { get; private set; }
         public IRuleFactory _ruleFactory;
-        private List<IDisposable> _subscriptions = new List<IDisposable>();
+        protected List<IDisposable> _subscriptions = new List<IDisposable>();
 
         public event PropertyChangedEventHandler PropertyChanged;
 
@@ -113,7 +128,14 @@ namespace CbBuild.Xrm.FakeData.Presenters.Rules
         // ATTRIBUT LEVEL // AttributeRule
         // RULES LEVEL // RUle
 
-        public void Init(ITreeNodeView view, IRuleFactory ruleFactory, IEventAggregator eventAggregator, IRuleEditView ruleEditView)
+        // TODO czy init powinien zniknac jednak?
+        public void Init(
+            ITreeNodeView view,
+            IRuleFactory ruleFactory,
+            IEventAggregator eventAggregator,
+            IRuleEditView ruleEditView,
+            IRuleExecutorFactory ruleExecutorFactory,
+            IRulePreviewView rulePreviewView)
         {
             Rules = new BindingList<IRulePresenter>();
             this.View = view;
@@ -148,6 +170,26 @@ namespace CbBuild.Xrm.FakeData.Presenters.Rules
                     .Subscribe(n =>
                     {
                         ruleEditView.SelectedRule = this;
+                    }),
+                 eventAggregator.GetEvent<NodePreviewRequestedEvent>()
+                    .Where(n => n.Id == this.View?.Id)
+                    .Subscribe(n =>
+                    {
+                        var executor = ruleExecutorFactory.Create(this, faker: null); // for preview create default
+                        var result = executor.Execute();
+
+            var rootName = (this.Name ?? "root").ToLower().Replace(' ', '_');
+           XmlSerializer serializer = new XmlSerializer(result.GetType(), new XmlRootAttribute(rootName));
+
+            string r;
+
+            using (StringWriter writer = new StringWriter())
+            {
+                serializer.Serialize(writer, result);
+                r = writer.ToString();
+            }
+
+                        rulePreviewView.SetText(r);
                     })
             });
         }
@@ -155,6 +197,7 @@ namespace CbBuild.Xrm.FakeData.Presenters.Rules
         private void Bind()
         {
             this.View?.SetText(this.DisplayName);
+            this.View?.SetIcon(this.IconKey);
         }
 
         virtual public IRulePresenter Add()

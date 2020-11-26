@@ -12,6 +12,7 @@
     <AssemblyName>CbBuild.Xrm.FakeData</AssemblyName>
     <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
+    <CodeAnalysisRuleSet>..\.sonarlint\cbbuild_xrm.fakedatacsharp.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -21,6 +22,7 @@
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <CodeAnalysisRuleSet>..\.sonarlint\cbbuild_xrm.fakedatacsharp.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -29,6 +31,7 @@
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <CodeAnalysisRuleSet>..\.sonarlint\cbbuild_xrm.fakedatacsharp.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
   <PropertyGroup>
     <SignAssembly>true</SignAssembly>
@@ -199,12 +202,14 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Common\ContainerGetter.cs" />
-    <Compile Include="Common\MessageBoxService.cs" />
+    <Compile Include="Ioc\DiConfigurationModule.cs" />
+    <Compile Include="Ioc\ServiceLocator.cs" />
+    <Compile Include="Services\MessageBoxService.cs" />
     <Compile Include="Descriptors\RuleParameter.cs" />
     <Compile Include="Descriptors\RuleParameterPropertyDescriptor.cs" />
     <Compile Include="Descriptors\RulePresenterTypeDescriptor.cs" />
     <Compile Include="Descriptors\RulePresenterTypeDescriptorProvider.cs" />
+    <Compile Include="Descriptors\RulePropertiesGenerator.cs" />
     <Compile Include="Events\DeleteNodeRequestedEvent.cs" />
     <Compile Include="Events\NewChildNodeRequestedEvent.cs" />
     <Compile Include="Events\NodePreviewRequestedEvent.cs" />
@@ -216,12 +221,15 @@
     <Compile Include="FakeDataPluginControl.designer.cs">
       <DependentUpon>FakeDataPluginControl.cs</DependentUpon>
     </Compile>
+    <Compile Include="Icons.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>Icons.resx</DependentUpon>
+    </Compile>
     <Compile Include="Model\RuleOperator.cs" />
     <Compile Include="Model\RuleProperties.cs" />
     <Compile Include="Presenters\FakeDataPresenter.cs" />
     <Compile Include="Presenters\FakeEntity.cs" />
-    <Compile Include="Presenters\PersonRulePresenter.cs" />
-    <Compile Include="Presenters\PresenterBase.cs" />
     <Compile Include="Presenters\Rules\AttributeRulePresenter.cs" />
     <Compile Include="Presenters\Rules\EntityRulePresenter.cs" />
     <Compile Include="Presenters\Rules\EvaluateResult.cs" />
@@ -233,7 +241,7 @@
     <Compile Include="RuleExecutors\IRuleExecutor.cs" />
     <Compile Include="RuleExecutors\IRuleExecutorFactory.cs" />
     <Compile Include="RuleExecutors\RuleExecutorFactory.cs" />
-    <Compile Include="Settings.cs" />
+    <Compile Include="Model\Settings.cs" />
     <Compile Include="Views\ControlView.cs">
       <SubType>UserControl</SubType>
     </Compile>
@@ -244,9 +252,24 @@
     <Compile Include="Views\RuleEditView.Designer.cs">
       <DependentUpon>RuleEditView.cs</DependentUpon>
     </Compile>
+    <Compile Include="Views\RulePreviewView.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="Views\RulePreviewView.Designer.cs">
+      <DependentUpon>RulePreviewView.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Views\RulesTreeView.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="Views\RulesTreeView.Designer.cs">
+      <DependentUpon>RulesTreeView.cs</DependentUpon>
+    </Compile>
     <Compile Include="Views\TreeNodeView.cs" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="..\.sonarlint\cbbuild_xrm.fakedatacsharp.ruleset">
+      <Link>cbbuild_xrm.fakedatacsharp.ruleset</Link>
+    </None>
     <None Include="app.config" />
     <None Include="packages.config" />
     <None Include="Properties\DataSources\CbBuild.Xrm.FakeData.Presenter.Magic.datasource" />
@@ -255,12 +278,32 @@
     <EmbeddedResource Include="FakeDataPluginControl.resx">
       <DependentUpon>FakeDataPluginControl.cs</DependentUpon>
     </EmbeddedResource>
+    <EmbeddedResource Include="Icons.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>Icons.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
     <EmbeddedResource Include="Views\RuleEditView.resx">
       <DependentUpon>RuleEditView.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Views\RulePreviewView.resx">
+      <DependentUpon>RulePreviewView.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Views\RulesTreeView.resx">
+      <DependentUpon>RulesTreeView.cs</DependentUpon>
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Commands\" />
+  </ItemGroup>
+  <ItemGroup>
+    <AdditionalFiles Include="..\.sonarlint\cbbuild_xrm.fakedata\CSharp\SonarLint.xml">
+      <Link>SonarLint.xml</Link>
+    </AdditionalFiles>
+    <Content Include="Resources\root_24.png" />
+    <Content Include="Resources\attribute_24.png" />
+    <Content Include="Resources\entity_24.png" />
+    <Content Include="Resources\operation_24.png" />
+    <Content Include="Resources\preview_64.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>

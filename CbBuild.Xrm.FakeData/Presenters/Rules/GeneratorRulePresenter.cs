@@ -1,4 +1,5 @@
 ﻿using Bogus;
+using CbBuild.Xrm.FakeData.Events;
 using CbBuild.Xrm.FakeData.RuleExecutors;
 using CbBuild.Xrm.FakeData.Views;
 using Reactive.EventAggregator;
@@ -7,19 +8,35 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Reactive.Linq;
+using System.ComponentModel;
+using CbBuild.Xrm.FakeData.Descriptors;
 
 namespace CbBuild.Xrm.FakeData.Presenters.Rules
 {
+    [TypeDescriptionProvider(typeof(RulePresenterTypeDescriptorProvider))]
     internal class GeneratorRulePresenter : RulePresenter
     {
         public override string DisplayName => "Fake Data Generator";
 
-        public GeneratorRulePresenter()
+        public GeneratorRulePresenter(IRulePreviewView rulePreviewView, IEventAggregator eventAggregator)
         {
             Name = "Fake Data Generator";
+
+            _subscriptions.AddRange(new[]
+            {
+                eventAggregator.GetEvent<NodePreviewRequestedEvent>()
+                    .Where(n => n.Id == this.View?.Id)
+                    .Subscribe(n =>
+                    {
+                        rulePreviewView.SetText("TODODO");
+                    })
+            });
         }
 
         public override RulePresenterType RuleType => RulePresenterType.Root;
+
+        public override string IconKey => nameof(Icons.root_24);
 
         // TODO Evaluate jest do wycieca, zastapione bedzie executorem
         public EvaluateResult Generate()

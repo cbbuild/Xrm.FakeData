@@ -1,14 +1,10 @@
 ﻿using CbBuild.Xrm.FakeData.Presenters.Rules;
 using System;
-using System.Collections.Generic;
 using System.ComponentModel;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace CbBuild.Xrm.FakeData.Descriptors
 {
-    class RulePresenterTypeDescriptorProvider : TypeDescriptionProvider
+    internal class RulePresenterTypeDescriptorProvider : TypeDescriptionProvider
     {
         private static TypeDescriptionProvider defaultTypeProvider =
                        TypeDescriptor.GetProvider(typeof(RulePresenter));

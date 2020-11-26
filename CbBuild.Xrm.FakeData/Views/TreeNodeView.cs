@@ -10,6 +10,8 @@ namespace CbBuild.Xrm.FakeData.Views
         void SetText(string name);
 
         int AddChild(ITreeNodeView node, bool focus = false, bool expand = false);
+
+        void SetIcon(string name);
     }
 
     internal class TreeNodeView : TreeNode, ITreeNodeView
@@ -42,6 +44,12 @@ namespace CbBuild.Xrm.FakeData.Views
             }
 
             return indx;
+        }
+
+        public void SetIcon(string name)
+        {
+            this.ImageKey = name;
+            this.SelectedImageKey = name;
         }
     }
 }

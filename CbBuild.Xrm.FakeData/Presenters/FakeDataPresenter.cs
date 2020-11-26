@@ -37,7 +37,7 @@ namespace CbBuild.Xrm.FakeData.Presenters
         Vehicle
     }
 
-    public class MyField : FieldInfo
+    public class DynamicFieldInfo : FieldInfo
     {
         public override RuntimeFieldHandle FieldHandle => throw new NotImplementedException();
 
@@ -73,7 +73,7 @@ namespace CbBuild.Xrm.FakeData.Presenters
             throw new NotImplementedException();
         }
 
-        public MyField(string name)
+        public DynamicFieldInfo(string name)
         {
             this.name = name;
         }
@@ -86,20 +86,20 @@ namespace CbBuild.Xrm.FakeData.Presenters
     }
 
     // TODO Binder ma zwrócić wyklikane propertisy, dodatkowo moze zwrocic typ itp?
-    public class MyBinder : IBinder
-    {
-        private readonly Dictionary<string, MemberInfo> dict;
+    //public class MyBinder : IBinder
+    //{
+    //    private readonly Dictionary<string, MemberInfo> dict;
 
-        public MyBinder(IEnumerable<string> attributes)
-        {
-            dict = new Dictionary<string, MemberInfo>(attributes.ToDictionary(s => s, s => (MemberInfo) new MyField(s)));
-        }
+    //    public MyBinder(IEnumerable<string> attributes)
+    //    {
+    //        dict = new Dictionary<string, MemberInfo>(attributes.ToDictionary(s => s, s => (MemberInfo) new DynamicFieldInfo(s)));
+    //    }
 
-        public Dictionary<string, MemberInfo> GetMembers(Type t)
-        {
-            return dict;
-        }
-    }
+    //    public Dictionary<string, MemberInfo> GetMembers(Type t)
+    //    {
+    //        return dict;
+    //    }
+    //}
 
     public class DynamicFaker : Faker<FakeEntity>
     {

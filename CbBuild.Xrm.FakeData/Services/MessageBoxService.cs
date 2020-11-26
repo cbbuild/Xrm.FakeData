@@ -1,6 +1,6 @@
 ﻿using System.Windows.Forms;
 
-namespace CbBuild.Xrm.FakeData.Common
+namespace CbBuild.Xrm.FakeData.Services
 {
     public interface IMessageBoxService
     {
