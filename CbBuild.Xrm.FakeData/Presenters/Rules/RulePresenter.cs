@@ -136,6 +136,15 @@ namespace CbBuild.Xrm.FakeData.Presenters.Rules
             IRuleExecutorFactory ruleExecutorFactory,
             IRulePreviewView rulePreviewView)
         {
+            //System.Diagnostics
+            //System.Diagnostics
+            //System.Diagnostics
+            //System.Diagnostics
+            //Rules = new BindingList<IRulePresenter>();
+            //this.View = view;
+            //_ruleFactory = ruleFactory;
+            //EventAggregator = eventAggregator;
+
             Rules = new BindingList<IRulePresenter>();
             this.View = view;
             _ruleFactory = ruleFactory;
