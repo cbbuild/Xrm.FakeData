@@ -17,7 +17,9 @@ jobs:
       
     #- name: Setup MSBuild Path
     #  uses: warrenbuckley/Setup-MSBuild@v1
-      
+    - name: Add msbuild to PATH
+      uses: microsoft/setup-msbuild@v1.0.2
+    
     - name: Setup Nuget.exe
       uses: Nuget/Setup-Nuget@v1.0.5
     
@@ -25,4 +27,4 @@ jobs:
       run: nuget restore CbBuild.Xrm.FakeData.sln
     
     - name: Build with MSBuild
-      run: C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\MSBuild\Current\Bin\msbuild CbBuild.Xrm.FakeData.sln -p:Configuration=Release
+      run: msbuild CbBuild.Xrm.FakeData.sln -p:Configuration=Release
