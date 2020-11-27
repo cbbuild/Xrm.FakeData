@@ -140,6 +140,14 @@ namespace CbBuild.Xrm.FakeData.RuleExecutors
         }
     }
 
+    public class RootExecutor : RuleExecutorBase
+    {
+        public override object Execute()
+        {
+            throw new NotImplementedException();
+        }
+    }
+
     public abstract class RuleExecutorBase : IRuleExecutor
     {
         protected IRulePresenter rule;

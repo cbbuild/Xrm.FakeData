@@ -11,7 +11,7 @@ namespace CbBuild.Xrm.FakeData.Presenters
     // dynamic moze byc latwiej serializowany
     public class FakeEntity : DynamicObject, IXmlSerializable
     {
-        Dictionary<string, object> values = new Dictionary<string, object>();
+        readonly Dictionary<string, object> values = new Dictionary<string, object>();
 
         public FakeEntity()
         {

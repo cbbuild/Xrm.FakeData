@@ -18,7 +18,7 @@ namespace CbBuild.Xrm.FakeData.Descriptors
             customFields = RulePropertiesGenerator.Generate(rule).ToList();
         }
 
-        private List<PropertyDescriptor> customFields = new List<PropertyDescriptor>();
+        private readonly List<PropertyDescriptor> customFields = new List<PropertyDescriptor>();
 
         public override PropertyDescriptorCollection GetProperties()
         {

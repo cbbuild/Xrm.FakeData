@@ -51,7 +51,9 @@ namespace CbBuild.Xrm.FakeData.Views
             lastSelected = e.Node;
 
             e.Node.NodeFont = new Font(tvRules.Font, FontStyle.Bold);
+#pragma warning disable S1656 // Variables should not be self-assigned
             e.Node.Text = e.Node.Text; // Fix for truncated text
+#pragma warning restore S1656 // Variables should not be self-assigned
 
             this.eventAggregator.Publish(new NodeSelectedEvent(((ITreeNodeView)e.Node).Id));
         }

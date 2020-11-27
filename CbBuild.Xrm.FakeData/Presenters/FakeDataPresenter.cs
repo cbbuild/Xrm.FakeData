@@ -45,7 +45,7 @@ namespace CbBuild.Xrm.FakeData.Presenters
 
         public override FieldAttributes Attributes => throw new NotImplementedException();
 
-        private string name;
+        private readonly string name;
 
         public override string Name => name;
 

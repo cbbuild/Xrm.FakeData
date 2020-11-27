@@ -21,9 +21,7 @@ namespace CbBuild.Xrm.FakeData
     {
         private Settings mySettings;
         private IRuleFactory ruleFactory = null;
-        private readonly IRuleEditView ruleEditView;
         private readonly IRulesTreeView rulesTreeView;
-        private readonly IServiceLocator containerGetter;
         private IEventAggregator eventAggregator = null;
 
         public FakeDataPluginControl(
@@ -54,9 +52,7 @@ namespace CbBuild.Xrm.FakeData
 
             // TODO: ten rule factory jeszcze stąd wywalić jakos
             this.ruleFactory = ruleFactory;
-            this.ruleEditView = ruleEditView;
             this.rulesTreeView = rulesTreeView;
-            this.containerGetter = containerGetter;
             var rootRule = this.ruleFactory.Create();
 
             rulesTreeView.AddRoot(rootRule.View);

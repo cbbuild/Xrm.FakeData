@@ -30,7 +30,7 @@ namespace CbBuild.Xrm.FakeData.Presenters.Rules
             this.rulePReviewView = rulePReviewView;
         }
 
-        public IRulePresenter Create(IRulePresenter parent)
+        public IRulePresenter Create(IRulePresenter parent = null)
         {
             IRulePresenter rule = null;
 

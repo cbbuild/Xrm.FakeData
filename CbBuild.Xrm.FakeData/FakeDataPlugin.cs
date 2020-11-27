@@ -74,7 +74,7 @@ namespace CbBuild.Xrm.FakeData
 
             // check to see if the failing assembly is one that we reference.
             List<AssemblyName> refAssemblies = currAssembly.GetReferencedAssemblies().ToList();
-            var refAssembly = refAssemblies.Where(a => a.Name == argName).FirstOrDefault();
+            var refAssembly = refAssemblies.FirstOrDefault(a => a.Name == argName);
 
             // if the current unresolved assembly is referenced by our plugin, attempt to load
             if (refAssembly != null)
@@ -88,7 +88,9 @@ namespace CbBuild.Xrm.FakeData
 
                 if (File.Exists(assmbPath))
                 {
+#pragma warning disable S3885 // "Assembly.Load" should be used
                     loadAssembly = Assembly.LoadFrom(assmbPath);
+#pragma warning restore S3885 // "Assembly.Load" should be used
                 }
                 else
                 {

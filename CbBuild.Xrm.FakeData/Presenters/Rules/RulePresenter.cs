@@ -1,4 +1,5 @@
 ﻿using CbBuild.Xrm.FakeData.Events;
+using CbBuild.Xrm.FakeData.Exceptions;
 using CbBuild.Xrm.FakeData.Model;
 using CbBuild.Xrm.FakeData.RuleExecutors;
 using CbBuild.Xrm.FakeData.Views;
@@ -75,19 +76,9 @@ namespace CbBuild.Xrm.FakeData.Presenters.Rules
         [Browsable(false)]
         public abstract string DisplayName { get; }
 
-        public RulePresenter()
+        protected RulePresenter()
         {
         }
-
-        // This method is called by the Set accessor of each property.
-        // The CallerMemberName attribute that is applied to the optional propertyName
-        // parameter causes the property name of the caller to be substituted as an argument.
-        private void NotifyPropertyChanged([CallerMemberName] String propertyName = "")
-        {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-        }
-
-        // public ListChangedEventHandler RulesChangedHandler => Rules.ListChanged;
 
         //public Type Type { get; set; }
         [Browsable(false)]
@@ -135,16 +126,7 @@ namespace CbBuild.Xrm.FakeData.Presenters.Rules
             IRuleEditView ruleEditView,
             IRuleExecutorFactory ruleExecutorFactory,
             IRulePreviewView rulePreviewView)
-        {
-            //System.Diagnostics
-            //System.Diagnostics
-            //System.Diagnostics
-            //System.Diagnostics
-            //Rules = new BindingList<IRulePresenter>();
-            //this.View = view;
-            //_ruleFactory = ruleFactory;
-            //EventAggregator = eventAggregator;
-
+        {           
             Rules = new BindingList<IRulePresenter>();
             this.View = view;
             _ruleFactory = ruleFactory;
@@ -212,7 +194,7 @@ namespace CbBuild.Xrm.FakeData.Presenters.Rules
         {
             if (_ruleFactory == null)
             {
-                throw new Exception("Rule factory not initialized");
+                throw new NotInitializedException("Rule factory not initialized");
             }
 
             var newRule = _ruleFactory.Create(this);
@@ -224,6 +206,12 @@ namespace CbBuild.Xrm.FakeData.Presenters.Rules
         }
 
         public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        protected virtual void Dispose(bool disposing)
         {
             foreach (var sub in _subscriptions)
             {
