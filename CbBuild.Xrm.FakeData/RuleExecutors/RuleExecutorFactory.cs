@@ -1,13 +1,17 @@
 ﻿using Bogus;
 using CbBuild.Xrm.FakeData.Model;
+using CbBuild.Xrm.FakeData.Presenters;
 using CbBuild.Xrm.FakeData.Presenters.Rules;
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 
 namespace CbBuild.Xrm.FakeData.RuleExecutors
 {
     public class RuleExecutorFactory : IRuleExecutorFactory
     {
+        // TODO childRULEEXECUTOR
         public IRuleExecutor Create(IRulePresenter rule, Faker faker)
         {
             if (faker == null)
@@ -45,41 +49,16 @@ namespace CbBuild.Xrm.FakeData.RuleExecutors
 
         private IRuleExecutor CreateGeneratorRuleExecutor(GeneratorRulePresenter rule)
         {
-            //              foreach (var child in chi)
-            //{
-            //    if (child.RuleType == RulePresenterType.Entity)
-            //    {
-            //        //var attributes = child.Rules.Select(r => r.Name);
-            //        //var faker = new Faker<FakeEntity>(locale: "pl", new MyBinder(attributes));
-
-            //        //foreach (var rule in child.Rules)
-            //        //{
-            //        //    faker.RuleFor(rule.Name, f =>
-            //        //    {
-            //        //        // TODO: fakera chyba nie trzeba przekazywac jesli sam go bedzie tworzyl dla rooa?
-            //        //        var executor = executorFactory.Create(rule, f);
-            //        //        return executor.Execute();
-            //        //        //return rule.Evaluate(faker).Result; //TODO errors
-            //        //    });
-            //        //}
-
-            //        //// TODO count
-            //        //fakeEntities.Add(faker.Generate(1).First());
-            //        ////return new EvaluateResult() { Result = faker.Generate(3).ToArray() };
-            //    }
-            //};
-
-            return null;
+            return new RootExecutor();
         }
 
         private IRuleExecutor CreateEntityRuleExecutor(EntityRulePresenter rule)
         {
-            throw new NotImplementedException();
+            return new EntityRuleExecutor(rule, this); // TODO nie wspiera RuleExecutorBase i initialize, podgląd encji będzie słąby
         }
 
         private IRuleExecutor CreateAttributeRuleExecutor(AttributeRulePresenter rule)
         {
-            //TODO: ????
             return CreateOperationRuleExecutor(rule);
         }
 
@@ -94,6 +73,10 @@ namespace CbBuild.Xrm.FakeData.RuleExecutors
                 if (rule.Generator == FakeOperator.Index)
                 {
                     return new Generator.IndexExecutor();
+                }
+                if(rule.Generator == FakeOperator.Address)
+                {
+                    return new Generator.AddressExecutor();
                 }
             }
 
@@ -126,7 +109,7 @@ namespace CbBuild.Xrm.FakeData.RuleExecutors
             {
                 public override object Execute()
                 {
-                    return rule["Value"];
+                    return rule[Parameters.Value];
                 }
             }
 
@@ -137,6 +120,48 @@ namespace CbBuild.Xrm.FakeData.RuleExecutors
                     return faker.IndexFaker;
                 }
             }
+
+            public class AddressExecutor : RuleExecutorBase
+            {
+                public override object Execute()
+                {
+                    return faker.Address.FullAddress();
+                }
+            }
+        }
+    }
+
+    public class EntityRuleExecutor : IRuleExecutor
+    {
+        private readonly Faker<FakeEntity> faker;
+
+        public EntityRuleExecutor(EntityRulePresenter entityRule, IRuleExecutorFactory executorFactory)
+        {
+            // WZIAC GLOWNEGO PRESENTERA TU
+            var attributes = entityRule.Rules.Select(r => r.Name);
+            //var faker = new Faker<FakeEntity>(locale: "pl", new MyBinder(attributes));
+            faker = new Faker<FakeEntity>(locale: "pl", new MyBinder(attributes));
+
+            foreach (var child in entityRule.Rules)
+            {
+                faker.RuleFor(child.Name, f =>
+                {
+                        var executor = executorFactory.Create(child, f);
+                        return executor.Execute();
+                });
+            }
+        }
+
+        public object Execute()
+        {
+            return faker.Generate();
+        }
+
+        public T ExecuteTyped<T>()
+        {
+            // TODO Validation
+            var obj = Execute();
+            return (T)Convert.ChangeType(obj, typeof(T));
         }
     }
 
@@ -144,7 +169,16 @@ namespace CbBuild.Xrm.FakeData.RuleExecutors
     {
         public override object Execute()
         {
-            throw new NotImplementedException();
+            var result = new FakeEntitiesCollection();
+
+            foreach (var entityRule in this.rule.Rules)
+            {
+                var executor = new EntityRuleExecutor(entityRule as EntityRulePresenter, factory); // TODO przeniesc do factory
+                result.Entities.Add(executor.ExecuteTyped<FakeEntity>());
+                result.Entities.Add(executor.ExecuteTyped<FakeEntity>());
+            }
+
+            return result;
         }
     }
 

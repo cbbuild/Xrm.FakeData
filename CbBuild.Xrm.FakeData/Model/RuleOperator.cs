@@ -19,6 +19,7 @@ namespace CbBuild.Xrm.FakeData.Model
     public enum FakeOperator
     {
         Const,
-        Index
+        Index,
+        Address
     }
 }

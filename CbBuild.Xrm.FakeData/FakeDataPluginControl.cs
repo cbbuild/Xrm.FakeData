@@ -1,6 +1,7 @@
 ﻿using CbBuild.Xrm.FakeData.Events;
 using CbBuild.Xrm.FakeData.Ioc;
 using CbBuild.Xrm.FakeData.Model;
+using CbBuild.Xrm.FakeData.Presenters;
 using CbBuild.Xrm.FakeData.Presenters.Rules;
 using CbBuild.Xrm.FakeData.Views;
 using McTools.Xrm.Connection;
@@ -20,16 +21,15 @@ namespace CbBuild.Xrm.FakeData
     public partial class FakeDataPluginControl : PluginControlBase
     {
         private Settings mySettings;
-        private IRuleFactory ruleFactory = null;
         private readonly IRulesTreeView rulesTreeView;
         private IEventAggregator eventAggregator = null;
 
         public FakeDataPluginControl(
             IEventAggregator eventAggregator,
-            IRuleFactory ruleFactory,
             IRuleEditView ruleEditView,
             IRulePreviewView rulePreviewView,
             IRulesTreeView rulesTreeView,
+            IRulesTreePresenter rulesTreePresenter,
             IServiceLocator containerGetter)
         {
             InitializeComponent();
@@ -50,12 +50,8 @@ namespace CbBuild.Xrm.FakeData
 
             this.eventAggregator = eventAggregator;
 
-            // TODO: ten rule factory jeszcze stąd wywalić jakos
-            this.ruleFactory = ruleFactory;
             this.rulesTreeView = rulesTreeView;
-            var rootRule = this.ruleFactory.Create();
-
-            rulesTreeView.AddRoot(rootRule.View);
+            rulesTreePresenter.CreateRootTreeRule();
         }
 
         private void MyPluginControl_Load(object sender, EventArgs e)
@@ -139,6 +135,7 @@ namespace CbBuild.Xrm.FakeData
             }
         }
 
+        // TODO Za mocno gada do widoków, powinna do prezenteró a oni do widokó
         private void btnAdd_Click(object sender, EventArgs e)
         {
             //  Observable.FromEventPattern(btnAdd)
@@ -158,11 +155,11 @@ namespace CbBuild.Xrm.FakeData
 
         private void btnPreview_Click(object sender, EventArgs e)
         {
-            RetrieveMetadata();
-            //if (rulesTreeView.SelectedNode != null)
-            //{
-            //    this.eventAggregator.Publish(new NodePreviewRequestedEvent(rulesTreeView.SelectedNode.Id));
-            //}
+            //  RetrieveMetadata();
+            if (rulesTreeView.SelectedNode != null)
+            {
+                this.eventAggregator.Publish(new NodePreviewRequestedEvent(rulesTreeView.SelectedNode.Id));
+            }
         }
 
         private void RetrieveMetadata()
@@ -175,15 +172,7 @@ namespace CbBuild.Xrm.FakeData
                 Message = "Retriving metadata",
                 Work = (worker, args) =>
                 {
-                    //RetrieveAllEntitiesRequest req = new RetrieveAllEntitiesRequest()
-                    //{
-                    //    EntityFilters = Microsoft.Xrm.Sdk.Metadata.EntityFilters.Entity | Microsoft.Xrm.Sdk.Metadata.EntityFilters.Attributes | Microsoft.Xrm.Sdk.Metadata.EntityFilters.Relationships
-                    //};
                     var req = new RetrieveMetadataChangesRequest();
-                    //args.Result = Service.RetrieveMultiple(new QueryExpression("account")
-                    //{
-                    //    TopCount = 50
-                    //});
                     args.Result = Service.Execute(req);
                 },
                 PostWorkCallBack = (args) =>

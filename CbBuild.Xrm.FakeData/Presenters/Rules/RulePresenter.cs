@@ -8,8 +8,11 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.IO;
+using System.Reactive.Concurrency;
 using System.Reactive.Linq;
 using System.Runtime.CompilerServices;
+using System.Threading;
+using System.Windows;
 using System.Xml.Serialization;
 
 namespace CbBuild.Xrm.FakeData.Presenters.Rules
@@ -39,6 +42,9 @@ namespace CbBuild.Xrm.FakeData.Presenters.Rules
         {
             get;
         }
+
+        BindingList<IRulePresenter> Rules { get; }
+
     }
 
     public enum RulePresenterType
@@ -80,9 +86,9 @@ namespace CbBuild.Xrm.FakeData.Presenters.Rules
         {
         }
 
-        //public Type Type { get; set; }
+        // TODO zastanowić sięczy to public
         [Browsable(false)]
-        protected BindingList<IRulePresenter> Rules { get; private set; }
+        public BindingList<IRulePresenter> Rules { get; private set; }
 
         //[Browsable(false)]
 
@@ -155,33 +161,53 @@ namespace CbBuild.Xrm.FakeData.Presenters.Rules
                             this.Dispose();
                         }
                     }), // TODO zmien nazwe eventa RuleNodeSelected?
+                 // Refresh property grid
                  eventAggregator.GetEvent<NodeSelectedEvent>()
                     .Where(n => n.Id == this.View?.Id)
                     .Subscribe(n =>
                     {
                         ruleEditView.SelectedRule = this;
+                        rulePreviewView.SetText("Generating preview...");
+                    }),
+                 // Refresh preview with debounce
+                 eventAggregator.GetEvent<NodeSelectedEvent>()
+                    .Throttle(TimeSpan.FromSeconds(2)) // To avoid unnecessary calculations
+                    .Where(n => n.Id == this.View?.Id)
+                    .ObserveOn(SynchronizationContext.Current)
+                    .Subscribe(n =>
+                    {
+                        PreviewNode(ruleExecutorFactory, rulePreviewView);
                     }),
                  eventAggregator.GetEvent<NodePreviewRequestedEvent>()
                     .Where(n => n.Id == this.View?.Id)
-                    .Subscribe(n =>
-                    {
-                        var executor = ruleExecutorFactory.Create(this, faker: null); // for preview create default
-                        var result = executor.Execute();
-
-            var rootName = (this.Name ?? "root").ToLower().Replace(' ', '_');
-           XmlSerializer serializer = new XmlSerializer(result.GetType(), new XmlRootAttribute(rootName));
-
-            string r;
-
-            using (StringWriter writer = new StringWriter())
-            {
-                serializer.Serialize(writer, result);
-                r = writer.ToString();
-            }
-
-                        rulePreviewView.SetText(r);
-                    })
+                    .Subscribe(n => PreviewNode(ruleExecutorFactory, rulePreviewView))
             });
+        }
+
+        private void PreviewNode(IRuleExecutorFactory ruleExecutorFactory, IRulePreviewView rulePreviewView)
+        {
+            try
+            {
+                var executor = ruleExecutorFactory.Create(this, faker: null); // for preview create default
+                var result = executor.Execute();
+
+                
+                var rootName = (this.Name ?? "root").ToLower().Replace(' ', '_');
+                XmlSerializer serializer = new XmlSerializer(result.GetType(), new XmlRootAttribute(rootName));
+
+                string r;
+
+                using (StringWriter writer = new StringWriter())
+                {
+                    serializer.Serialize(writer, result);
+                    r = writer.ToString();
+                }
+
+                rulePreviewView.SetText(r);
+            } catch(Exception ex)
+            {
+                rulePreviewView.SetText($"Something went wrong\n{ex}");
+            }
         }
 
         private void Bind()

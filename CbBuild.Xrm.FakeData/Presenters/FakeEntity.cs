@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using Microsoft.Xrm.Sdk;
+using System.Collections.Generic;
 using System.Dynamic;
 using System.Linq;
 using System.Xml;
@@ -7,17 +8,37 @@ using System.Xml.Serialization;
 
 namespace CbBuild.Xrm.FakeData.Presenters
 {
+    [XmlRoot("entities")]
+    public class FakeEntitiesCollection
+    {
+        [XmlElement("entity")]
+        public List<FakeEntity> Entities { get; private set; }
+
+        public FakeEntitiesCollection()
+        {
+            Entities = new List<FakeEntity>();
+        }
+    }
+
     // TODO, przeorać, tutaj wystarczy klasa z dictionary i helperem do serializacji??
-    // dynamic moze byc latwiej serializowany
+    [XmlRoot("entity")]
     public class FakeEntity : DynamicObject, IXmlSerializable
     {
-        readonly Dictionary<string, object> values = new Dictionary<string, object>();
+        private readonly Dictionary<string, object> values = new Dictionary<string, object>();
+
+        public string LogicalName
+        {
+            get;set;
+        }
+
+        public FakeEntity(string logicalName)
+        {
+            LogicalName = logicalName;
+        }
 
         public FakeEntity()
         {
-            values["value"] = "jakas tam wartosc";
         }
-
 
         public override IEnumerable<string> GetDynamicMemberNames()
         {
@@ -26,16 +47,24 @@ namespace CbBuild.Xrm.FakeData.Presenters
 
         public override bool TryGetMember(GetMemberBinder binder, out object result)
         {
-            return values.TryGetValue(binder.Name, out result);
-            //return base.TryGetMember(binder, out result);
+            bool hasValue = values.TryGetValue(binder.Name, out result);
+            if (!hasValue)
+            {
+                return base.TryGetMember(binder, out result);
+            }
+
+            return hasValue;
         }
 
         public override bool TrySetMember(SetMemberBinder binder, object value)
         {
-            values[binder.Name] = value;
+            bool valueSet = base.TrySetMember(binder, value);
+            if (!valueSet)
+            {
+                values[binder.Name] = value;
+            }
 
             return true;
-           // return base.TrySetMember(binder, value);
         }
 
         public override bool TrySetIndex(SetIndexBinder binder, object[] indexes, object value)
@@ -44,29 +73,52 @@ namespace CbBuild.Xrm.FakeData.Presenters
             {
                 values[indx.ToString()] = value;
             }
+
             return true;
-           // return base.TrySetIndex(binder, indexes, value);
         }
 
-        public XmlSchema GetSchema()
-        {
-            throw new System.NotImplementedException();
-        }
+        public XmlSchema GetSchema() => null;
 
         public void ReadXml(XmlReader reader)
         {
             throw new System.NotImplementedException();
         }
 
+        public Entity ToEntity()
+        {
+            var entity = new Entity(LogicalName);
+            entity.Attributes.AddRange(values); // TODO czy te wawrtości będą crmowe?
+            return entity;
+        }
+
         public void WriteXml(XmlWriter writer)
         {
-           
+            writer.WriteStartAttribute("logicalName");
+            writer.WriteValue(LogicalName);
+            writer.WriteEndAttribute();
+
+            writer.WriteStartElement("attributes");
             foreach (var attr in this.values)
             {
                 writer.WriteStartElement(attr.Key);
-                writer.WriteValue(attr.Value);
+                if (attr.Value is Money)
+                {
+                    writer.WriteAttributeString("type", "money");
+                    writer.WriteValue(((Money)attr.Value).Value);
+                }
+                else
+                {
+                    writer.WriteValue(attr.Value ?? "");
+                }
                 writer.WriteEndElement();
             }
+            writer.WriteEndElement();
+        }
+
+        public object this[string key]
+        {
+            get => values[key];
+            set => values[key] = value;
         }
     }
 }
