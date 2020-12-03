@@ -7,29 +7,6 @@ using System.Reflection;
 
 namespace CbBuild.Xrm.FakeData.Presenters
 {
-    public enum FakeType
-    {
-        Address,
-        Commerce,
-        Company,
-        Database,
-        Date,
-        Finance,
-        Hacker,
-        Hashids,
-        Image,
-        Internet,
-        Lorem,
-        Music,
-        Name,
-        Person,
-        Phone,
-        Random,
-        Rant,
-        System,
-        Vehicle
-    }
-
     public class DynamicFieldInfo : FieldInfo
     {
         public override RuntimeFieldHandle FieldHandle => throw new NotImplementedException();

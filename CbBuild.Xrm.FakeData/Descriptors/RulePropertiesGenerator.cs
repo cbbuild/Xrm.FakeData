@@ -37,7 +37,7 @@ namespace CbBuild.Xrm.FakeData.Descriptors
                 // TODO parameters collection on change value (index) should refresh property grid?
                 var attr = (AttributeRulePresenter)rule;
                 if(rule.Operator == Model.RuleOperator.Generator
-                    && rule.Generator == Model.FakeOperator.Const)
+                    && rule.Generator == Model.GeneratorType.Const)
                 {
                     result.Add(new RuleParameter("Value"));
                 }

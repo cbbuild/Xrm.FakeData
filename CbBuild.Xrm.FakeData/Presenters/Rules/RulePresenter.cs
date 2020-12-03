@@ -8,11 +8,8 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.IO;
-using System.Reactive.Concurrency;
 using System.Reactive.Linq;
-using System.Runtime.CompilerServices;
 using System.Threading;
-using System.Windows;
 using System.Xml.Serialization;
 
 namespace CbBuild.Xrm.FakeData.Presenters.Rules
@@ -25,18 +22,11 @@ namespace CbBuild.Xrm.FakeData.Presenters.Rules
         string DisplayName { get; }
 
         RuleOperator Operator { get; set; }
-        FakeOperator Generator { get; set; }
+        GeneratorType Generator { get; set; }
 
         object this[string propertyName] { get; set; }
 
         RulePresenterType RuleType { get; }
-
-        void Init(ITreeNodeView view,
-                  IRuleFactory ruleFactory,
-                  IEventAggregator eventAggregator,
-                  IRuleEditView ruleEditView,
-                  IRuleExecutorFactory ruleExecutorFactory,
-                  IRulePreviewView rulePreviewView);
 
         ITreeNodeView View
         {
@@ -44,7 +34,8 @@ namespace CbBuild.Xrm.FakeData.Presenters.Rules
         }
 
         BindingList<IRulePresenter> Rules { get; }
-
+        void SetInvalidState();
+        void SetValidState();
     }
 
     public enum RulePresenterType
@@ -55,7 +46,6 @@ namespace CbBuild.Xrm.FakeData.Presenters.Rules
         Operation
     }
 
-    // [TypeDescriptionProvider(typeof(RulePresenterTypeDescriptorProvider))]
     public abstract class RulePresenter : IRulePresenter
     {
         protected IEventAggregator EventAggregator { get; private set; }
@@ -67,8 +57,6 @@ namespace CbBuild.Xrm.FakeData.Presenters.Rules
         public abstract string IconKey { get; }
 
         private string _name;
-        private RuleOperator _operator = RuleOperator.Generator;
-
         public string Name
         {
             get { return _name; }
@@ -82,18 +70,12 @@ namespace CbBuild.Xrm.FakeData.Presenters.Rules
         [Browsable(false)]
         public abstract string DisplayName { get; }
 
-        protected RulePresenter()
-        {
-        }
-
         // TODO zastanowić sięczy to public
         [Browsable(false)]
         public BindingList<IRulePresenter> Rules { get; private set; }
 
-        //[Browsable(false)]
-
-        public RuleOperator Operator { get => _operator; set => _operator = value; }
-        public FakeOperator Generator { get; set; }
+        public RuleOperator Operator { get; set; }
+        public GeneratorType Generator { get; set; }
 
         private readonly Dictionary<string, object> parameters = new Dictionary<string, object>();
 
@@ -115,6 +97,8 @@ namespace CbBuild.Xrm.FakeData.Presenters.Rules
 
         public ITreeNodeView View { get; private set; }
         public IRuleFactory _ruleFactory;
+        private readonly IRuleExecutorFactory ruleExecutorFactory;
+        private readonly IRulePreviewView rulePreviewView;
         protected List<IDisposable> _subscriptions = new List<IDisposable>();
 
         public event PropertyChangedEventHandler PropertyChanged;
@@ -125,21 +109,22 @@ namespace CbBuild.Xrm.FakeData.Presenters.Rules
         // RULES LEVEL // RUle
 
         // TODO czy init powinien zniknac jednak?
-        public void Init(
-            ITreeNodeView view,
+        protected RulePresenter(ITreeNodeView view,
             IRuleFactory ruleFactory,
             IEventAggregator eventAggregator,
             IRuleEditView ruleEditView,
             IRuleExecutorFactory ruleExecutorFactory,
             IRulePreviewView rulePreviewView)
-        {           
+        {
             Rules = new BindingList<IRulePresenter>();
             this.View = view;
             _ruleFactory = ruleFactory;
             EventAggregator = eventAggregator;
+            this.ruleExecutorFactory = ruleExecutorFactory;
+            this.rulePreviewView = rulePreviewView;
 
             Bind();
-
+            // Extract to methods
             _subscriptions.AddRange(new[]
             {
                  eventAggregator.GetEvent<NewChildNodeRequestedEvent>()
@@ -176,35 +161,43 @@ namespace CbBuild.Xrm.FakeData.Presenters.Rules
                     .ObserveOn(SynchronizationContext.Current)
                     .Subscribe(n =>
                     {
-                        PreviewNode(ruleExecutorFactory, rulePreviewView);
+                        PreviewNode();
                     }),
                  eventAggregator.GetEvent<NodePreviewRequestedEvent>()
                     .Where(n => n.Id == this.View?.Id)
-                    .Subscribe(n => PreviewNode(ruleExecutorFactory, rulePreviewView))
+                    .Subscribe(n => PreviewNode())
             });
         }
 
-        private void PreviewNode(IRuleExecutorFactory ruleExecutorFactory, IRulePreviewView rulePreviewView)
+        // TODO usunac parametry
+        private void PreviewNode()
         {
             try
             {
-                var executor = ruleExecutorFactory.Create(this, faker: null); // for preview create default
+                var executor = ruleExecutorFactory.Create(this);
                 var result = executor.Execute();
 
-                
+                if(result.HasErrors)
+                {
+                    //this.View.SetIcon(nameof(Icons.badnode_24));
+                    return;
+                }
+
+                // TODO value null
                 var rootName = (this.Name ?? "root").ToLower().Replace(' ', '_');
-                XmlSerializer serializer = new XmlSerializer(result.GetType(), new XmlRootAttribute(rootName));
+                XmlSerializer serializer = new XmlSerializer(result.Value.GetType(), new XmlRootAttribute(rootName));
 
                 string r;
 
                 using (StringWriter writer = new StringWriter())
                 {
-                    serializer.Serialize(writer, result);
+                    serializer.Serialize(writer, result.Value);
                     r = writer.ToString();
                 }
 
                 rulePreviewView.SetText(r);
-            } catch(Exception ex)
+            }
+            catch (Exception ex)
             {
                 rulePreviewView.SetText($"Something went wrong\n{ex}");
             }
@@ -252,6 +245,18 @@ namespace CbBuild.Xrm.FakeData.Presenters.Rules
                 childRule.Dispose();
             }
             this.Rules.Clear();
+        }
+
+
+        // TODO: Cache names/icons/ doesnt change if not needed
+        public void SetInvalidState()
+        {
+            this.View.SetIcon(nameof(Icons.badnode_24));
+        }
+
+        public void SetValidState()
+        {
+            this.View.SetIcon(IconKey);
         }
     }
 }

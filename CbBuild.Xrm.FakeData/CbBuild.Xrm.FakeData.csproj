@@ -13,6 +13,8 @@
     <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <CodeAnalysisRuleSet>..\.sonarlint\cbbuild_xrm.fakedatacsharp.ruleset</CodeAnalysisRuleSet>
+    <NuGetPackageImportStamp>
+    </NuGetPackageImportStamp>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -202,6 +204,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Exceptions\InvalidRulesStructureException.cs" />
     <Compile Include="Exceptions\NotInitializedException.cs" />
     <Compile Include="Ioc\DiConfigurationModule.cs" />
     <Compile Include="Ioc\ServiceLocator.cs" />
@@ -209,6 +212,13 @@
     <Compile Include="Model\Parameters.cs" />
     <Compile Include="Presenters\RulesTreePresenter.cs" />
     <Compile Include="Presenters\ViewPresenterBase.cs" />
+    <Compile Include="RuleExecutors\ConcatRuleExecutor.cs" />
+    <Compile Include="RuleExecutors\EntityRuleExecutor.cs" />
+    <Compile Include="RuleExecutors\GeneratorExecutors.cs" />
+    <Compile Include="RuleExecutors\GenericRuleExecutor.cs" />
+    <Compile Include="RuleExecutors\RootRuleExecutor.cs" />
+    <Compile Include="RuleExecutors\FakedRuleExecutorBase.cs" />
+    <Compile Include="RuleExecutors\RuleExecutorResult.cs" />
     <Compile Include="Services\MessageBoxService.cs" />
     <Compile Include="Descriptors\RuleParameter.cs" />
     <Compile Include="Descriptors\RuleParameterPropertyDescriptor.cs" />
@@ -304,6 +314,7 @@
     <AdditionalFiles Include="..\.sonarlint\cbbuild_xrm.fakedata\CSharp\SonarLint.xml">
       <Link>SonarLint.xml</Link>
     </AdditionalFiles>
+    <None Include="Resources\badnode_24.png" />
     <Content Include="Resources\root_24.png" />
     <Content Include="Resources\attribute_24.png" />
     <Content Include="Resources\entity_24.png" />

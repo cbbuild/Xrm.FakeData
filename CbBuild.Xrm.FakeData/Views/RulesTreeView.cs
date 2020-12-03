@@ -25,6 +25,7 @@ namespace CbBuild.Xrm.FakeData.Views
             tvRules.ImageList.Images.Add(nameof(Icons.entity_24), Icons.entity_24);
             tvRules.ImageList.Images.Add(nameof(Icons.attribute_24), Icons.attribute_24);
             tvRules.ImageList.Images.Add(nameof(Icons.operation_24), Icons.operation_24);
+            tvRules.ImageList.Images.Add(nameof(Icons.badnode_24), Icons.badnode_24);
 
             tvRules.HideSelection = false;
             tvRules.AfterSelect += TvRules_AfterSelect;

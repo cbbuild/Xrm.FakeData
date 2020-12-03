@@ -7,11 +7,11 @@ namespace CbBuild.Xrm.FakeData.Views
     {
         Guid Id { get; }
 
-        void SetText(string name);
-
         int AddChild(ITreeNodeView node, bool focus = false, bool expand = false);
 
         void SetIcon(string name);
+
+        void SetText(string name);
     }
 
     internal class TreeNodeView : TreeNode, ITreeNodeView
@@ -19,22 +19,12 @@ namespace CbBuild.Xrm.FakeData.Views
         private Guid _id = Guid.NewGuid();
         public Guid Id => _id;
 
-        public void Dispose()
-        {
-            this.Remove();
-        }
-
-        public void SetText(string name)
-        {
-            Text = name;
-        }
-
         public int AddChild(ITreeNodeView node, bool focus = false, bool expand = false)
         {
             var ctrl = (TreeNode)node;
-            int indx =  this.Nodes.Add(ctrl);
+            int indx = this.Nodes.Add(ctrl);
 
-            if(focus)
+            if (focus)
             {
                 TreeView.Focus();
             }
@@ -46,10 +36,26 @@ namespace CbBuild.Xrm.FakeData.Views
             return indx;
         }
 
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
         public void SetIcon(string name)
         {
             this.ImageKey = name;
             this.SelectedImageKey = name;
+        }
+
+        public void SetText(string name)
+        {
+            Text = name;
+        }
+
+        protected virtual void Dispose(bool disposing)
+        {
+            this.Remove();
         }
     }
 }

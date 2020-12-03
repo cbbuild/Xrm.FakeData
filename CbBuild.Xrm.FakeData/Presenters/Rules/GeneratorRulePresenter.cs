@@ -1,5 +1,8 @@
 ﻿using CbBuild.Xrm.FakeData.Descriptors;
 using CbBuild.Xrm.FakeData.Model;
+using CbBuild.Xrm.FakeData.RuleExecutors;
+using CbBuild.Xrm.FakeData.Views;
+using Reactive.EventAggregator;
 using System.ComponentModel;
 
 namespace CbBuild.Xrm.FakeData.Presenters.Rules
@@ -10,9 +13,14 @@ namespace CbBuild.Xrm.FakeData.Presenters.Rules
         public LocaleType Locale { get; set; } = LocaleType.en;
         public override string DisplayName => Name;
 
-        public GeneratorRulePresenter()
+        public GeneratorRulePresenter(ITreeNodeView view,
+                                      IRuleFactory ruleFactory,
+                                      IEventAggregator eventAggregator,
+                                      IRuleEditView ruleEditView,
+                                      IRuleExecutorFactory ruleExecutorFactory,
+                                      IRulePreviewView rulePreviewView) 
+            : base(view, ruleFactory, eventAggregator, ruleEditView, ruleExecutorFactory, rulePreviewView)
         {
-            Name = "Fake Data Generator";
         }
 
         public override RulePresenterType RuleType => RulePresenterType.Root;

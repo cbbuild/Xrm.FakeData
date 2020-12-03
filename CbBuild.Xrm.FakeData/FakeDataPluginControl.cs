@@ -155,13 +155,12 @@ namespace CbBuild.Xrm.FakeData
 
         private void btnPreview_Click(object sender, EventArgs e)
         {
-            //  RetrieveMetadata();
             if (rulesTreeView.SelectedNode != null)
             {
                 this.eventAggregator.Publish(new NodePreviewRequestedEvent(rulesTreeView.SelectedNode.Id));
             }
         }
-
+        /* check this out
         private void RetrieveMetadata()
         {
             //fetchxml uzywa RetrieveMetadataCHangesResponse, a reszte pewnie serializuje lokalnie!
@@ -189,5 +188,6 @@ namespace CbBuild.Xrm.FakeData
                 }
             });
         }
+        */
     }
 }

@@ -1,13 +1,12 @@
-﻿using System.ComponentModel;
-
-namespace CbBuild.Xrm.FakeData.Model
+﻿namespace CbBuild.Xrm.FakeData.Model
 {
     // https://stackoverflow.com/questions/7422685/edit-the-display-name-of-enumeration-members-in-a-propertygrid
-    // type converter
+    // TODO type converter
     public enum RuleOperator
     {
         // CONST TUTAJ?
         Generator,
+
         Concat,
         Add,
         Sub,
@@ -16,10 +15,28 @@ namespace CbBuild.Xrm.FakeData.Model
         Mod
     }
 
-    public enum FakeOperator
+    public enum GeneratorType
     {
+        Address,
+        Commerce,
+        Company,
         Const,
+        Database,
+        Date,
+        Finance,
+        Hacker,
+        Hashids,
+        Image,
         Index,
-        Address
+        Internet,
+        Lorem,
+        Music,
+        Name,
+        Person,
+        Phone,
+        Random,
+        Rant,
+        System,
+        Vehicle
     }
 }

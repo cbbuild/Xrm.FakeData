@@ -1,7 +1,4 @@
 ﻿using CbBuild.Xrm.FakeData.Ioc;
-using CbBuild.Xrm.FakeData.RuleExecutors;
-using CbBuild.Xrm.FakeData.Views;
-using Reactive.EventAggregator;
 using System;
 
 namespace CbBuild.Xrm.FakeData.Presenters.Rules
@@ -14,20 +11,10 @@ namespace CbBuild.Xrm.FakeData.Presenters.Rules
     public class RuleFactory : IRuleFactory
     {
         private readonly IServiceLocator containerGetter;
-        private readonly IEventAggregator eventAggregator;
-        private readonly IRuleExecutorFactory ruleExecutorFactory;
-        private readonly IRulePreviewView rulePReviewView;
 
-        public RuleFactory(
-            IServiceLocator containerGetter,
-            IEventAggregator eventAggregator,
-            IRuleExecutorFactory ruleExecutorFactory,
-            IRulePreviewView rulePReviewView)
+        public RuleFactory(IServiceLocator containerGetter)
         {
             this.containerGetter = containerGetter;
-            this.eventAggregator = eventAggregator;
-            this.ruleExecutorFactory = ruleExecutorFactory;
-            this.rulePReviewView = rulePReviewView;
         }
 
         public IRulePresenter Create(IRulePresenter parent = null)
@@ -62,9 +49,6 @@ namespace CbBuild.Xrm.FakeData.Presenters.Rules
 
             if (rule != null)
             {
-                var ruleNode = containerGetter.Get<ITreeNodeView>();
-                var ruleEditView = containerGetter.Get<IRuleEditView>();
-                rule.Init(ruleNode, this, eventAggregator, ruleEditView, ruleExecutorFactory, rulePReviewView);
                 return rule;
             }
 

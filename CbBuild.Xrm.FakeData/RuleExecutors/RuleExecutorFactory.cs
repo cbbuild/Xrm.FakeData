@@ -1,16 +1,33 @@
 ﻿using Bogus;
 using CbBuild.Xrm.FakeData.Model;
-using CbBuild.Xrm.FakeData.Presenters;
 using CbBuild.Xrm.FakeData.Presenters.Rules;
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 
 namespace CbBuild.Xrm.FakeData.RuleExecutors
 {
-    public class RuleExecutorFactory : IRuleExecutorFactory
+    public partial class RuleExecutorFactory : IRuleExecutorFactory
     {
+        //TODO CHILD EXECUTOR OR SMTH
+
+        /// <summary>
+        /// Root and entity doesn't need a faker
+        /// </summary>
+        /// <param name="rule">Root or entity</param>
+        /// <returns>Rule executor</returns>
+        public IRuleExecutor Create(IRulePresenter rule)
+        {
+            // TODO clean
+            var executor = CreateDedicatedExecutor(rule);
+            if(executor is FakedRuleExecutorBase)
+            {
+                ((FakedRuleExecutorBase)executor).Initialize(rule, new Faker(), this);
+
+            }else
+            ((RuleExecutorBase)executor).Initialize(rule, this);
+            return executor;
+        }
+
         // TODO childRULEEXECUTOR
         public IRuleExecutor Create(IRulePresenter rule, Faker faker)
         {
@@ -20,7 +37,7 @@ namespace CbBuild.Xrm.FakeData.RuleExecutors
             }
 
             var executor = CreateDedicatedExecutor(rule);
-            ((RuleExecutorBase)executor).Initialize(rule, faker, this);
+            ((FakedRuleExecutorBase)executor).Initialize(rule, faker, this);
             return executor;
         }
 
@@ -49,7 +66,7 @@ namespace CbBuild.Xrm.FakeData.RuleExecutors
 
         private IRuleExecutor CreateGeneratorRuleExecutor(GeneratorRulePresenter rule)
         {
-            return new RootExecutor();
+            return new RootRuleExecutor(rule);
         }
 
         private IRuleExecutor CreateEntityRuleExecutor(EntityRulePresenter rule)
@@ -66,144 +83,85 @@ namespace CbBuild.Xrm.FakeData.RuleExecutors
         {
             if (rule.Operator == RuleOperator.Generator)
             {
-                if (rule.Generator == FakeOperator.Const)
+                if (GeneratorExecutors.Config.TryGetValue(rule.Generator, out IRuleExecutor executor))
                 {
-                    return new Generator.ConstExecutor();
+                    return executor;
                 }
-                if (rule.Generator == FakeOperator.Index)
-                {
-                    return new Generator.IndexExecutor();
-                }
-                if(rule.Generator == FakeOperator.Address)
-                {
-                    return new Generator.AddressExecutor();
-                }
+
+                throw new KeyNotFoundException($"{rule.Generator} key not found in generator executors config");
             }
 
             if (rule.Operator == RuleOperator.Concat)
             {
-                return new ConcatExecutor();
+                return new ConcatRuleExecutor();
             }
 
+            if (rule.Operator == RuleOperator.Add)
+            {
+                return new AddRuleExecutor();
+            }
+
+            if (rule.Operator == RuleOperator.Div)
+            {
+                return new DevRuleExecutor();
+            }
+
+            if (rule.Operator == RuleOperator.Mod)
+            {
+                return new ModRuleExecutor();
+            }
+
+            if (rule.Operator == RuleOperator.Multiply)
+            {
+                return new MultiplyRuleExecutor();
+            }
+
+            if (rule.Operator == RuleOperator.Sub)
+            {
+                return new SubRuleExecutor();
+            }
+
+            throw new NotImplementedException("Operator not supported");
+        }
+    }
+
+    public class SubRuleExecutor : FakedRuleExecutorBase
+    {
+        protected override RuleExecutorResult ExecuteLogic()
+        {
             throw new NotImplementedException();
         }
+    }
 
-        public class ConcatExecutor : RuleExecutorBase
+    public class MultiplyRuleExecutor : FakedRuleExecutorBase
+    {
+        protected override RuleExecutorResult ExecuteLogic()
         {
-            public override object Execute()
-            {
-                StringBuilder sb = new StringBuilder();
-                //foreach (var child in rule.Rules)
-                //{
-                //    var childExecutor = factory.Create(child, faker);
-                //    var childResut = childExecutor.Execute();
-                //    sb.Append(childResut);
-                //}
-                return sb.ToString();
-            }
-        }
-
-        public static class Generator
-        {
-            public class ConstExecutor : RuleExecutorBase
-            {
-                public override object Execute()
-                {
-                    return rule[Parameters.Value];
-                }
-            }
-
-            public class IndexExecutor : RuleExecutorBase
-            {
-                public override object Execute()
-                {
-                    return faker.IndexFaker;
-                }
-            }
-
-            public class AddressExecutor : RuleExecutorBase
-            {
-                public override object Execute()
-                {
-                    return faker.Address.FullAddress();
-                }
-            }
+            throw new NotImplementedException();
         }
     }
 
-    public class EntityRuleExecutor : IRuleExecutor
+    public class ModRuleExecutor : FakedRuleExecutorBase
     {
-        private readonly Faker<FakeEntity> faker;
-
-        public EntityRuleExecutor(EntityRulePresenter entityRule, IRuleExecutorFactory executorFactory)
+        protected override RuleExecutorResult ExecuteLogic()
         {
-            // WZIAC GLOWNEGO PRESENTERA TU
-            var attributes = entityRule.Rules.Select(r => r.Name);
-            //var faker = new Faker<FakeEntity>(locale: "pl", new MyBinder(attributes));
-            faker = new Faker<FakeEntity>(locale: "pl", new MyBinder(attributes));
-
-            foreach (var child in entityRule.Rules)
-            {
-                faker.RuleFor(child.Name, f =>
-                {
-                        var executor = executorFactory.Create(child, f);
-                        return executor.Execute();
-                });
-            }
-        }
-
-        public object Execute()
-        {
-            return faker.Generate();
-        }
-
-        public T ExecuteTyped<T>()
-        {
-            // TODO Validation
-            var obj = Execute();
-            return (T)Convert.ChangeType(obj, typeof(T));
+            throw new NotImplementedException();
         }
     }
 
-    public class RootExecutor : RuleExecutorBase
+    public class AddRuleExecutor : FakedRuleExecutorBase
     {
-        public override object Execute()
+        protected override RuleExecutorResult ExecuteLogic()
         {
-            var result = new FakeEntitiesCollection();
-
-            foreach (var entityRule in this.rule.Rules)
-            {
-                var executor = new EntityRuleExecutor(entityRule as EntityRulePresenter, factory); // TODO przeniesc do factory
-                result.Entities.Add(executor.ExecuteTyped<FakeEntity>());
-                result.Entities.Add(executor.ExecuteTyped<FakeEntity>());
-            }
-
-            return result;
+            throw new NotImplementedException();
         }
     }
 
-    public abstract class RuleExecutorBase : IRuleExecutor
+    public class DevRuleExecutor : FakedRuleExecutorBase
     {
-        protected IRulePresenter rule;
-        protected Faker faker;
-        protected IRuleExecutorFactory factory;
-
-        public void Initialize(IRulePresenter rule,
-                               Faker faker,
-                               IRuleExecutorFactory factory)
+        protected override RuleExecutorResult ExecuteLogic()
         {
-            this.rule = rule;
-            this.faker = faker;
-            this.factory = factory;
-        }
-
-        public abstract object Execute();
-
-        public T ExecuteTyped<T>()
-        {
-            // TODO Validation
-            var obj = Execute();
-            return (T)Convert.ChangeType(obj, typeof(T));
+            throw new NotImplementedException();
         }
     }
 }

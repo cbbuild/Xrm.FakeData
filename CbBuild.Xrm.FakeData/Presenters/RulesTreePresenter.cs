@@ -1,6 +1,6 @@
-﻿using CbBuild.Xrm.FakeData.Presenters.Rules;
+﻿using CbBuild.Xrm.FakeData.Exceptions;
+using CbBuild.Xrm.FakeData.Presenters.Rules;
 using CbBuild.Xrm.FakeData.Views;
-using System;
 
 namespace CbBuild.Xrm.FakeData.Presenters
 {
@@ -28,7 +28,7 @@ namespace CbBuild.Xrm.FakeData.Presenters
         {
             if (Root != null)
             {
-                throw new Exception("Root already exists");
+                throw new InvalidRulesStructureException("Root already exists");
             }
 
             var rootRulePresenter = this.ruleFactory.Create();
