@@ -2,11 +2,9 @@
 using CbBuild.Xrm.FakeData.Ioc;
 using CbBuild.Xrm.FakeData.Model;
 using CbBuild.Xrm.FakeData.Presenters;
-using CbBuild.Xrm.FakeData.Presenters.Rules;
 using CbBuild.Xrm.FakeData.Views;
 using McTools.Xrm.Connection;
 using Microsoft.Xrm.Sdk;
-using Microsoft.Xrm.Sdk.Messages;
 using Microsoft.Xrm.Sdk.Query;
 using Reactive.EventAggregator;
 using System;
@@ -15,9 +13,6 @@ using XrmToolBox.Extensibility;
 
 namespace CbBuild.Xrm.FakeData
 {
-    //https://github.com/MscrmTools/XrmToolBox/blob/master/Plugins/MsCrmTools.SampleTool/SampleTool.cs
-    //https://www.c-sharpcorner.com/blogs/perform-drag-and-drop-operation-on-treeview-node-in-c-sharp-net
-
     public partial class FakeDataPluginControl : PluginControlBase
     {
         private Settings mySettings;
@@ -26,13 +21,14 @@ namespace CbBuild.Xrm.FakeData
 
         public FakeDataPluginControl(
             IEventAggregator eventAggregator,
-            IRuleEditView ruleEditView,
-            IRulePreviewView rulePreviewView,
-            IRulesTreeView rulesTreeView,
+            IRuleEditPresenter ruleEditPresenter,
+            IRulePreviewPresenter rulePreviewPresenter,
             IRulesTreePresenter rulesTreePresenter,
             IServiceLocator containerGetter)
         {
             InitializeComponent();
+            
+            this.rulesTreeView = rulesTreePresenter.View;
 
             containerGetter.RegisterOrganizationServiceFactory(() => Service);
 
@@ -40,23 +36,22 @@ namespace CbBuild.Xrm.FakeData
             this.tableLayoutPanel1.Controls.Add(rulesTreeViewControl, 0, 0);
             rulesTreeViewControl.Dock = DockStyle.Fill;
 
-            var ruleEditControl = ruleEditView.ToControl();
+            var ruleEditControl = ruleEditPresenter.View.ToControl();
             this.tableLayoutPanel1.Controls.Add(ruleEditControl);
             ruleEditControl.Dock = DockStyle.Fill;
 
-            var rulePreviewControl = rulePreviewView.ToControl();
+            var rulePreviewControl = rulePreviewPresenter.View.ToControl();
             this.scMain.Panel2.Controls.Add(rulePreviewControl);
             rulePreviewControl.Dock = DockStyle.Fill;
 
             this.eventAggregator = eventAggregator;
 
-            this.rulesTreeView = rulesTreeView;
             rulesTreePresenter.CreateRootTreeRule();
         }
 
         private void MyPluginControl_Load(object sender, EventArgs e)
         {
-            ShowInfoNotification("This is a notification that can lead to XrmToolBox repository", new Uri("https://github.com/MscrmTools/XrmToolBox"));
+            ShowInfoNotification("Check wiki to learn all fantastic functions!", new Uri("https://github.com/cbbuild/Xrm.FakeData/wiki"));
 
             // Loads or creates the settings for the plugin
             if (!SettingsManager.Instance.TryLoad(GetType(), out mySettings))
@@ -157,9 +152,15 @@ namespace CbBuild.Xrm.FakeData
         {
             if (rulesTreeView.SelectedNode != null)
             {
-                this.eventAggregator.Publish(new NodePreviewRequestedEvent(rulesTreeView.SelectedNode.Id));
+                this.eventAggregator.Publish(new NodePreviewRequestedEvent(rulesTreeView.SelectedNode));
             }
         }
+
+        private void FakeDataPluginControl_KeyUp(object sender, KeyEventArgs e)
+        {
+            //this.eventAggregator.Publish(new KeyUpEvent(e));
+        }
+
         /* check this out
         private void RetrieveMetadata()
         {

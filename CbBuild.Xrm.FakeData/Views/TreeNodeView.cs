@@ -12,6 +12,8 @@ namespace CbBuild.Xrm.FakeData.Views
         void SetIcon(string name);
 
         void SetText(string name);
+
+        object Tag { get; set; }
     }
 
     internal class TreeNodeView : TreeNode, ITreeNodeView
@@ -32,7 +34,7 @@ namespace CbBuild.Xrm.FakeData.Views
             {
                 ctrl.Parent.Expand();
             }
-
+         
             return indx;
         }
 

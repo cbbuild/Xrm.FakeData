@@ -1,16 +1,14 @@
 ﻿using CbBuild.Xrm.FakeData.Events;
 using CbBuild.Xrm.FakeData.Exceptions;
 using CbBuild.Xrm.FakeData.Model;
-using CbBuild.Xrm.FakeData.RuleExecutors;
+using CbBuild.Xrm.FakeData.Services;
 using CbBuild.Xrm.FakeData.Views;
 using Reactive.EventAggregator;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
-using System.IO;
+using System.Linq;
 using System.Reactive.Linq;
-using System.Threading;
-using System.Xml.Serialization;
 
 namespace CbBuild.Xrm.FakeData.Presenters.Rules
 {
@@ -34,7 +32,9 @@ namespace CbBuild.Xrm.FakeData.Presenters.Rules
         }
 
         BindingList<IRulePresenter> Rules { get; }
+
         void SetInvalidState();
+
         void SetValidState();
     }
 
@@ -57,6 +57,7 @@ namespace CbBuild.Xrm.FakeData.Presenters.Rules
         public abstract string IconKey { get; }
 
         private string _name;
+
         public string Name
         {
             get { return _name; }
@@ -97,31 +98,20 @@ namespace CbBuild.Xrm.FakeData.Presenters.Rules
 
         public ITreeNodeView View { get; private set; }
         public IRuleFactory _ruleFactory;
-        private readonly IRuleExecutorFactory ruleExecutorFactory;
-        private readonly IRulePreviewView rulePreviewView;
         protected List<IDisposable> _subscriptions = new List<IDisposable>();
 
         public event PropertyChangedEventHandler PropertyChanged;
 
-        // Tu powinny byc poziomy
-        // ROOT LEVEL - ENTITY EnttyRUle
-        // ATTRIBUT LEVEL // AttributeRule
-        // RULES LEVEL // RUle
-
-        // TODO czy init powinien zniknac jednak?
         protected RulePresenter(ITreeNodeView view,
             IRuleFactory ruleFactory,
             IEventAggregator eventAggregator,
-            IRuleEditView ruleEditView,
-            IRuleExecutorFactory ruleExecutorFactory,
-            IRulePreviewView rulePreviewView)
+            IMessageBoxService messageBoxService)
         {
             Rules = new BindingList<IRulePresenter>();
             this.View = view;
+            this.View.Tag = this;
             _ruleFactory = ruleFactory;
             EventAggregator = eventAggregator;
-            this.ruleExecutorFactory = ruleExecutorFactory;
-            this.rulePreviewView = rulePreviewView;
 
             Bind();
             // Extract to methods
@@ -134,73 +124,26 @@ namespace CbBuild.Xrm.FakeData.Presenters.Rules
                         this.Add(); // TODO inna metoda?
                     }),
                  eventAggregator.GetEvent<DeleteNodeRequestedEvent>()
-                    .Where(n => n.Id == this.View?.Id)
+                    .Where(n => this.Rules.Any(r => r.View.Id == n.Id))
                     .Subscribe(n =>
                     {
-                        // TODO messege prompt ask?
-                        if(this.RuleType == RulePresenterType.Root)
+                        var child = this.Rules.Single(r => r.View.Id == n.Id);
+                        if (child.Rules.Any())
+                            {
+                            if (messageBoxService.Prompt("Selected rule has children rules. Are you sure you want to perform delete?")){
+                      this.Rules.Remove(child);
+            child.Dispose();
+        }else
+                            {
+                                return;
+                            }
+                            }else
                         {
-                            // send msg can't delete root
-                        }else
-                        {
-                            this.Dispose();
+                            this.Rules.Remove(child);
+                            child.Dispose();
                         }
-                    }), // TODO zmien nazwe eventa RuleNodeSelected?
-                 // Refresh property grid
-                 eventAggregator.GetEvent<NodeSelectedEvent>()
-                    .Where(n => n.Id == this.View?.Id)
-                    .Subscribe(n =>
-                    {
-                        ruleEditView.SelectedRule = this;
-                        rulePreviewView.SetText("Generating preview...");
-                    }),
-                 // Refresh preview with debounce
-                 eventAggregator.GetEvent<NodeSelectedEvent>()
-                    .Throttle(TimeSpan.FromSeconds(2)) // To avoid unnecessary calculations
-                    .Where(n => n.Id == this.View?.Id)
-                    .ObserveOn(SynchronizationContext.Current)
-                    .Subscribe(n =>
-                    {
-                        PreviewNode();
-                    }),
-                 eventAggregator.GetEvent<NodePreviewRequestedEvent>()
-                    .Where(n => n.Id == this.View?.Id)
-                    .Subscribe(n => PreviewNode())
+                    })
             });
-        }
-
-        // TODO usunac parametry
-        private void PreviewNode()
-        {
-            try
-            {
-                var executor = ruleExecutorFactory.Create(this);
-                var result = executor.Execute();
-
-                if(result.HasErrors)
-                {
-                    //this.View.SetIcon(nameof(Icons.badnode_24));
-                    return;
-                }
-
-                // TODO value null
-                var rootName = (this.Name ?? "root").ToLower().Replace(' ', '_');
-                XmlSerializer serializer = new XmlSerializer(result.Value.GetType(), new XmlRootAttribute(rootName));
-
-                string r;
-
-                using (StringWriter writer = new StringWriter())
-                {
-                    serializer.Serialize(writer, result.Value);
-                    r = writer.ToString();
-                }
-
-                rulePreviewView.SetText(r);
-            }
-            catch (Exception ex)
-            {
-                rulePreviewView.SetText($"Something went wrong\n{ex}");
-            }
         }
 
         private void Bind()
@@ -238,6 +181,7 @@ namespace CbBuild.Xrm.FakeData.Presenters.Rules
             }
             _subscriptions.Clear();
 
+            this.View.Tag = null;
             this.View.Dispose();
 
             foreach (var childRule in this.Rules)
@@ -247,11 +191,10 @@ namespace CbBuild.Xrm.FakeData.Presenters.Rules
             this.Rules.Clear();
         }
 
-
         // TODO: Cache names/icons/ doesnt change if not needed
         public void SetInvalidState()
         {
-            this.View.SetIcon(nameof(Icons.badnode_24));
+            this.View.SetIcon(nameof(Icons.error_24));
         }
 
         public void SetValidState()

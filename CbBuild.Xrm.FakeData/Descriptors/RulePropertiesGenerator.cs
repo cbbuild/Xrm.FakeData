@@ -11,10 +11,6 @@ namespace CbBuild.Xrm.FakeData.Descriptors
         {
             List<RuleParameter> result = GetRuleParameters(rule);
 
-            
-     
-            // TODO FILL, bierz pod uwagę typy z crm
-
             return result.Select(p => new RuleParameterPropertyDescriptor(p)).Cast<PropertyDescriptor>();
         }
 
@@ -22,21 +18,33 @@ namespace CbBuild.Xrm.FakeData.Descriptors
         {
             var result = new List<RuleParameter>();
 
-            //if(rule.RuleType == RulePresenterType.Root)
-            //{
-            //    result.Add(new RuleParameter("Locale", typeof(string)));
-            //}
-
-            if(rule.RuleType == RulePresenterType.Entity)
+            if (rule.RuleType == RulePresenterType.Root)
             {
-                result.Add(new RuleParameter("LogicalName"));
+                result.Add(new RuleParameter("Locale", typeof(string)));
             }
 
-            if(rule.RuleType == RulePresenterType.Attribute)
+            if (rule.RuleType == RulePresenterType.Entity)
+            {
+                result.Add(new RuleParameter("LogicalName"));
+                result.Add(new RuleParameter("Locale", typeof(string)));
+            }
+
+            if (rule.RuleType == RulePresenterType.Attribute)
             {
                 // TODO parameters collection on change value (index) should refresh property grid?
                 var attr = (AttributeRulePresenter)rule;
                 if(rule.Operator == Model.RuleOperator.Generator
+                    && rule.Generator == Model.GeneratorType.Const)
+                {
+                    result.Add(new RuleParameter("Value"));
+                }
+            }
+
+            if (rule.RuleType == RulePresenterType.Operation)
+            {
+                // TODO parameters collection on change value (index) should refresh property grid?
+                var attr = (OperationRulePresenter)rule;
+                if (rule.Operator == Model.RuleOperator.Generator
                     && rule.Generator == Model.GeneratorType.Const)
                 {
                     result.Add(new RuleParameter("Value"));

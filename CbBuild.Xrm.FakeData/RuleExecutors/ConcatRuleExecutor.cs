@@ -4,7 +4,7 @@ namespace CbBuild.Xrm.FakeData.RuleExecutors
 {
     public class ConcatRuleExecutor : FakedRuleExecutorBase
     {
-        protected override RuleExecutorResult ExecuteLogic()
+        protected override IRuleExecutorResult ExecuteLogic()
         {
             StringBuilder sb = new StringBuilder();
             foreach (var child in rule.Rules)
@@ -13,7 +13,9 @@ namespace CbBuild.Xrm.FakeData.RuleExecutors
                 var childResut = childExecutor.Execute();
                 sb.Append(childResut.Value);
             }
-            return new RuleExecutorResult(sb.ToString());
+            var result = new RuleExecutorResult();
+            result.AddError(sb.ToString());
+            return result;
         }
     }
 }

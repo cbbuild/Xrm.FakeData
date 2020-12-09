@@ -4,18 +4,18 @@ using System;
 
 namespace CbBuild.Xrm.FakeData.Events
 {
-    public class NodePreviewRequestedEvent
+    public class RuleNodeSelectedEvent
     {
         public IRulePresenter SelectedNodePresenter { get; private set; }
 
-        public NodePreviewRequestedEvent(IRulePresenter selectedNodePresenter)
+        public RuleNodeSelectedEvent(IRulePresenter selectedNodePresenter)
         {
             SelectedNodePresenter = selectedNodePresenter;
         }
 
-        public NodePreviewRequestedEvent(ITreeNodeView seletedNodeView)
+        public RuleNodeSelectedEvent(ITreeNodeView selectedNodeView)
         {
-            SelectedNodePresenter = (IRulePresenter)seletedNodeView.Tag;
+            SelectedNodePresenter = (IRulePresenter)selectedNodeView.Tag;
         }
 
         public Guid Id => SelectedNodePresenter.View.Id;

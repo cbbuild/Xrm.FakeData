@@ -73,9 +73,9 @@ namespace CbBuild.Xrm.FakeData {
         /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>
-        internal static System.Drawing.Bitmap badnode_24 {
+        internal static System.Drawing.Bitmap entity_24 {
             get {
-                object obj = ResourceManager.GetObject("badnode_24", resourceCulture);
+                object obj = ResourceManager.GetObject("entity_24", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
             }
         }
@@ -83,9 +83,9 @@ namespace CbBuild.Xrm.FakeData {
         /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>
-        internal static System.Drawing.Bitmap entity_24 {
+        internal static System.Drawing.Bitmap error_24 {
             get {
-                object obj = ResourceManager.GetObject("entity_24", resourceCulture);
+                object obj = ResourceManager.GetObject("error_24", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
             }
         }

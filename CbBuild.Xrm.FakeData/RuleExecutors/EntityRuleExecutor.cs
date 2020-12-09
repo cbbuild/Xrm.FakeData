@@ -1,34 +1,38 @@
 ﻿using Bogus;
+using CbBuild.Xrm.FakeData.Exceptions;
 using CbBuild.Xrm.FakeData.Presenters;
 using CbBuild.Xrm.FakeData.Presenters.Rules;
-using System;
 using System.Linq;
 
 namespace CbBuild.Xrm.FakeData.RuleExecutors
 {
     public class EntityRuleExecutor : RuleExecutorBase
     {
-        private readonly Faker<FakeEntity> faker;
+        private Faker<FakeEntity> faker;
 
-        public EntityRuleExecutor(EntityRulePresenter entityRule, IRuleExecutorFactory executorFactory)
+        public override void Initialize(IRulePresenter rule, IRuleExecutorFactory factory)
         {
-            // WZIAC GLOWNEGO PRESENTERA TU
-            var attributes = entityRule.Rules.Select(r => r.Name);
-            //var faker = new Faker<FakeEntity>(locale: "pl", new MyBinder(attributes));
+            base.Initialize(rule, factory);
+
+            var attributes = rule.Rules.Select(r => r.Name);
+            if (attributes.Distinct().Count() != attributes.Count())
+            {
+                Error = "Attributes must have unique names";
+                return;
+            }
+
             faker = new Faker<FakeEntity>(locale: "pl", new MyBinder(attributes));
 
-            foreach (var child in entityRule.Rules)
+            foreach (var child in rule.Rules)
             {
                 faker.RuleFor(child.Name, f =>
                 {
-                    var executor = executorFactory.Create(child, f);
-
+                    var executor = factory.Create(child, f);
                     var result = executor.Execute();
 
-                    // TODO xxx
-                    if(result.HasErrors)
+                    if (result.HasErrors)
                     {
-                        throw new Exception(result.Errors[0]);
+                        throw new InvalidRuleException(result.Error);
                     }
 
                     return result.Value;
@@ -36,7 +40,7 @@ namespace CbBuild.Xrm.FakeData.RuleExecutors
             }
         }
 
-        protected override RuleExecutorResult ExecuteLogic()
+        protected override IRuleExecutorResult ExecuteLogic()
         {
             return new RuleExecutorResult(faker.Generate());
         }

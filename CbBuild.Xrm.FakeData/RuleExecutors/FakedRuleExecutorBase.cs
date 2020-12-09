@@ -9,16 +9,20 @@ namespace CbBuild.Xrm.FakeData.RuleExecutors
         protected IRulePresenter rule;
         protected IRuleExecutorFactory factory;
 
-        public void Initialize(IRulePresenter rule,
+        public bool IsValid => string.IsNullOrEmpty(Error);
+
+        public string Error { get; set; }
+
+        public virtual void Initialize(IRulePresenter rule,
                IRuleExecutorFactory factory)
         {
             this.rule = rule;
             this.factory = factory;
         }
 
-        public RuleExecutorResult Execute()
+        public IRuleExecutorResult Execute()
         {
-            RuleExecutorResult result;
+            IRuleExecutorResult result;
 
             try
             {
@@ -26,7 +30,8 @@ namespace CbBuild.Xrm.FakeData.RuleExecutors
             }
             catch (Exception ex)
             {
-                result = new RuleExecutorResult(ex.Message);
+                result = new RuleExecutorResult();
+                result.AddError(ex.Message);
             }
 
             if (result.HasErrors)
@@ -41,7 +46,7 @@ namespace CbBuild.Xrm.FakeData.RuleExecutors
             return result;
         }
 
-        protected abstract RuleExecutorResult ExecuteLogic();
+        protected abstract IRuleExecutorResult ExecuteLogic();
 
         public T ExecuteTyped<T>()
         {

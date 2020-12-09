@@ -8,6 +8,7 @@ using System.Xml.Serialization;
 
 namespace CbBuild.Xrm.FakeData.Presenters
 {
+    //TODO MOVE ENTITIES
     [XmlRoot("entities")]
     public class FakeEntitiesCollection
     {

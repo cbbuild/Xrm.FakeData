@@ -20,7 +20,7 @@ namespace CbBuild.Xrm.FakeData.RuleExecutors
             func2 = func;
         }
 
-        protected override RuleExecutorResult ExecuteLogic()
+        protected override IRuleExecutorResult ExecuteLogic()
         {
             if (func1 != null)
             {

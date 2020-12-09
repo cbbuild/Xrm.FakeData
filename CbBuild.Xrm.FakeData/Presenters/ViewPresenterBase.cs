@@ -2,10 +2,16 @@
 
 namespace CbBuild.Xrm.FakeData.Presenters
 {
-    public abstract class ViewPresenterBase<T>
+    public interface IViewPresenterBase<T>
         where T : IControlView
     {
-        protected T View { get; private set; }
+        T View { get; }
+    }
+
+    public abstract class ViewPresenterBase<T> : IViewPresenterBase<T>
+        where T : IControlView
+    {
+        public T View { get; private set; }
 
         protected ViewPresenterBase(T view)
         {

@@ -121,11 +121,11 @@
   <data name="attribute_24" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>resources\attribute_24.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
   </data>
-  <data name="badnode_24" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>Resources\badnode_24.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
-  </data>
   <data name="entity_24" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>resources\entity_24.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="error_24" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>Resources\error_24.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
   </data>
   <data name="operation_24" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>resources\operation_24.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>

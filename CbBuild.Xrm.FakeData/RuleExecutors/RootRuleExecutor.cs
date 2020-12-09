@@ -7,14 +7,7 @@ namespace CbBuild.Xrm.FakeData.RuleExecutors
     // druga klasa bazowa bez fakera w initialize?
     public class RootRuleExecutor : FakedRuleExecutorBase
     {
-        private readonly GeneratorRulePresenter rule;
-
-        public RootRuleExecutor(GeneratorRulePresenter rule)
-        {
-            this.rule = rule;
-        }
-
-        protected override RuleExecutorResult ExecuteLogic()
+        protected override IRuleExecutorResult ExecuteLogic()
         {
             var result = new FakeEntitiesCollection();
 

@@ -1,6 +1,6 @@
 ﻿using CbBuild.Xrm.FakeData.Descriptors;
 using CbBuild.Xrm.FakeData.Model;
-using CbBuild.Xrm.FakeData.RuleExecutors;
+using CbBuild.Xrm.FakeData.Services;
 using CbBuild.Xrm.FakeData.Views;
 using Reactive.EventAggregator;
 using System.ComponentModel;
@@ -16,10 +16,8 @@ namespace CbBuild.Xrm.FakeData.Presenters.Rules
         public GeneratorRulePresenter(ITreeNodeView view,
                                       IRuleFactory ruleFactory,
                                       IEventAggregator eventAggregator,
-                                      IRuleEditView ruleEditView,
-                                      IRuleExecutorFactory ruleExecutorFactory,
-                                      IRulePreviewView rulePreviewView) 
-            : base(view, ruleFactory, eventAggregator, ruleEditView, ruleExecutorFactory, rulePreviewView)
+                                      IMessageBoxService messageBoxService)
+            : base(view, ruleFactory, eventAggregator, messageBoxService)
         {
         }
 

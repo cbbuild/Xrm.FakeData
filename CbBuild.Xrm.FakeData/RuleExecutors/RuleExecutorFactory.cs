@@ -19,12 +19,12 @@ namespace CbBuild.Xrm.FakeData.RuleExecutors
         {
             // TODO clean
             var executor = CreateDedicatedExecutor(rule);
-            if(executor is FakedRuleExecutorBase)
+            if (executor is FakedRuleExecutorBase)
             {
                 ((FakedRuleExecutorBase)executor).Initialize(rule, new Faker(), this);
-
-            }else
-            ((RuleExecutorBase)executor).Initialize(rule, this);
+            }
+            else
+                ((RuleExecutorBase)executor).Initialize(rule, this);
             return executor;
         }
 
@@ -46,10 +46,10 @@ namespace CbBuild.Xrm.FakeData.RuleExecutors
             switch (rule.RuleType)
             {
                 case RulePresenterType.Root:
-                    return CreateGeneratorRuleExecutor((GeneratorRulePresenter)rule);
+                    return CreateGeneratorRuleExecutor();
 
                 case RulePresenterType.Entity:
-                    return CreateEntityRuleExecutor((EntityRulePresenter)rule);
+                    return CreateEntityRuleExecutor();
 
                 case RulePresenterType.Attribute:
                     return CreateAttributeRuleExecutor((AttributeRulePresenter)rule);
@@ -64,14 +64,14 @@ namespace CbBuild.Xrm.FakeData.RuleExecutors
             throw new ArgumentException($"{rule.GetType().Name} rule not supported");
         }
 
-        private IRuleExecutor CreateGeneratorRuleExecutor(GeneratorRulePresenter rule)
+        private IRuleExecutor CreateGeneratorRuleExecutor()
         {
-            return new RootRuleExecutor(rule);
+            return new RootRuleExecutor();
         }
 
-        private IRuleExecutor CreateEntityRuleExecutor(EntityRulePresenter rule)
+        private IRuleExecutor CreateEntityRuleExecutor()
         {
-            return new EntityRuleExecutor(rule, this); // TODO nie wspiera RuleExecutorBase i initialize, podgląd encji będzie słąby
+            return new EntityRuleExecutor();
         }
 
         private IRuleExecutor CreateAttributeRuleExecutor(AttributeRulePresenter rule)
@@ -127,15 +127,37 @@ namespace CbBuild.Xrm.FakeData.RuleExecutors
 
     public class SubRuleExecutor : FakedRuleExecutorBase
     {
-        protected override RuleExecutorResult ExecuteLogic()
+        protected override IRuleExecutorResult ExecuteLogic()
         {
-            throw new NotImplementedException();
+            decimal? value = null;
+
+            foreach (var child in rule.Rules)
+            {
+                var executor = factory.Create(child, faker);
+                var childResult = executor.Execute().CastTo<decimal>();
+
+                if (childResult.HasErrors)
+                {
+                    return childResult;
+                }
+
+                if (!value.HasValue)
+                {
+                    value = childResult.Value;
+                }
+                else
+                {
+                    value -= childResult.Value;
+                }
+            }
+
+            return new RuleExecutorResult(value ?? 0);
         }
     }
 
     public class MultiplyRuleExecutor : FakedRuleExecutorBase
     {
-        protected override RuleExecutorResult ExecuteLogic()
+        protected override IRuleExecutorResult ExecuteLogic()
         {
             throw new NotImplementedException();
         }
@@ -143,7 +165,7 @@ namespace CbBuild.Xrm.FakeData.RuleExecutors
 
     public class ModRuleExecutor : FakedRuleExecutorBase
     {
-        protected override RuleExecutorResult ExecuteLogic()
+        protected override IRuleExecutorResult ExecuteLogic()
         {
             throw new NotImplementedException();
         }
@@ -151,7 +173,7 @@ namespace CbBuild.Xrm.FakeData.RuleExecutors
 
     public class AddRuleExecutor : FakedRuleExecutorBase
     {
-        protected override RuleExecutorResult ExecuteLogic()
+        protected override IRuleExecutorResult ExecuteLogic()
         {
             throw new NotImplementedException();
         }
@@ -159,7 +181,7 @@ namespace CbBuild.Xrm.FakeData.RuleExecutors
 
     public class DevRuleExecutor : FakedRuleExecutorBase
     {
-        protected override RuleExecutorResult ExecuteLogic()
+        protected override IRuleExecutorResult ExecuteLogic()
         {
             throw new NotImplementedException();
         }

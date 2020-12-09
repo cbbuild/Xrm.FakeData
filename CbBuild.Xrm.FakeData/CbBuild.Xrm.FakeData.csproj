@@ -204,13 +204,22 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Exceptions\InvalidRulesStructureException.cs" />
+    <Compile Include="Commands\AddNodeCommand.cs" />
+    <Compile Include="Commands\CommandBase.cs" />
+    <Compile Include="Commands\CommandFactory.cs" />
+    <Compile Include="Commands\DeleteNodeCommand.cs" />
+    <Compile Include="Commands\IToolbarCommand.cs" />
+    <Compile Include="Events\KeyUpEvent.cs" />
+    <Compile Include="Exceptions\InvalidRuleException.cs" />
     <Compile Include="Exceptions\NotInitializedException.cs" />
     <Compile Include="Ioc\DiConfigurationModule.cs" />
     <Compile Include="Ioc\ServiceLocator.cs" />
     <Compile Include="Model\LocaleType.cs" />
     <Compile Include="Model\Parameters.cs" />
+    <Compile Include="Presenters\RuleEditPresenter.cs" />
+    <Compile Include="Presenters\RulePreviewPresenter.cs" />
     <Compile Include="Presenters\RulesTreePresenter.cs" />
+    <Compile Include="Presenters\RulesTreeToolbarPresenter.cs" />
     <Compile Include="Presenters\ViewPresenterBase.cs" />
     <Compile Include="RuleExecutors\ConcatRuleExecutor.cs" />
     <Compile Include="RuleExecutors\EntityRuleExecutor.cs" />
@@ -228,7 +237,7 @@
     <Compile Include="Events\DeleteNodeRequestedEvent.cs" />
     <Compile Include="Events\NewChildNodeRequestedEvent.cs" />
     <Compile Include="Events\NodePreviewRequestedEvent.cs" />
-    <Compile Include="Events\NodeSelectedEvent.cs" />
+    <Compile Include="Events\RuleNodeSelectedEvent.cs" />
     <Compile Include="FakeDataPlugin.cs" />
     <Compile Include="FakeDataPluginControl.cs">
       <SubType>UserControl</SubType>
@@ -273,6 +282,12 @@
     <Compile Include="Views\RulePreviewView.Designer.cs">
       <DependentUpon>RulePreviewView.cs</DependentUpon>
     </Compile>
+    <Compile Include="Views\RulesTreeToolbarView.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="Views\RulesTreeToolbarView.Designer.cs">
+      <DependentUpon>RulesTreeToolbarView.cs</DependentUpon>
+    </Compile>
     <Compile Include="Views\RulesTreeView.cs">
       <SubType>UserControl</SubType>
     </Compile>
@@ -303,18 +318,19 @@
     <EmbeddedResource Include="Views\RulePreviewView.resx">
       <DependentUpon>RulePreviewView.cs</DependentUpon>
     </EmbeddedResource>
+    <EmbeddedResource Include="Views\RulesTreeToolbarView.resx">
+      <DependentUpon>RulesTreeToolbarView.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="Views\RulesTreeView.resx">
       <DependentUpon>RulesTreeView.cs</DependentUpon>
     </EmbeddedResource>
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Commands\" />
-  </ItemGroup>
+  <ItemGroup />
   <ItemGroup>
     <AdditionalFiles Include="..\.sonarlint\cbbuild_xrm.fakedata\CSharp\SonarLint.xml">
       <Link>SonarLint.xml</Link>
     </AdditionalFiles>
-    <None Include="Resources\badnode_24.png" />
+    <None Include="Resources\error_24.png" />
     <Content Include="Resources\root_24.png" />
     <Content Include="Resources\attribute_24.png" />
     <Content Include="Resources\entity_24.png" />

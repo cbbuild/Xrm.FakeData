@@ -2,6 +2,8 @@
 {
     public interface IRuleExecutor
     {
-        RuleExecutorResult Execute();
+        bool IsValid { get; }
+        string Error { get; }
+        IRuleExecutorResult Execute();
     }
 }
