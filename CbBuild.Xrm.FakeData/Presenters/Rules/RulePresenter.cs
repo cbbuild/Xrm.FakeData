@@ -1,10 +1,12 @@
-﻿using CbBuild.Xrm.FakeData.Events;
+﻿using CbBuild.Xrm.FakeData.Descriptors;
+using CbBuild.Xrm.FakeData.Events;
 using CbBuild.Xrm.FakeData.Exceptions;
 using CbBuild.Xrm.FakeData.Model;
 using CbBuild.Xrm.FakeData.Services;
 using CbBuild.Xrm.FakeData.Views;
 using Reactive.EventAggregator;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
@@ -12,17 +14,20 @@ using System.Reactive.Linq;
 
 namespace CbBuild.Xrm.FakeData.Presenters.Rules
 {
-    public interface IRulePresenter : INotifyPropertyChanged, IDisposable
+    public interface IRulePresenter : INotifyPropertyChanged, IDisposable, IEnumerable<KeyValuePair<string, object>>
     {
         IRulePresenter Add();
 
         string Name { get; set; }
         string DisplayName { get; }
 
-        RuleOperator Operator { get; set; }
-        GeneratorType Generator { get; set; }
-
         object this[string propertyName] { get; set; }
+        Dictionary<string, object> Properties { get; }
+
+        T GetProperty<T>(string name);
+        void SetProperty(string name, object value);
+
+        void LoadProperties(IDictionary<string, object> properties);
 
         RulePresenterType RuleType { get; }
 
@@ -32,10 +37,13 @@ namespace CbBuild.Xrm.FakeData.Presenters.Rules
         }
 
         BindingList<IRulePresenter> Rules { get; }
+        bool HasChildren { get; }
 
         void SetInvalidState();
 
         void SetValidState();
+
+        void RefreshProperties(IDictionary<string, RuleProperty> parameters);
     }
 
     public enum RulePresenterType
@@ -58,6 +66,7 @@ namespace CbBuild.Xrm.FakeData.Presenters.Rules
 
         private string _name;
 
+        [Category(Categories.Common)]
         public string Name
         {
             get { return _name; }
@@ -75,16 +84,13 @@ namespace CbBuild.Xrm.FakeData.Presenters.Rules
         [Browsable(false)]
         public BindingList<IRulePresenter> Rules { get; private set; }
 
-        public RuleOperator Operator { get; set; }
-        public GeneratorType Generator { get; set; }
-
-        private readonly Dictionary<string, object> parameters = new Dictionary<string, object>();
+        private Dictionary<string, object> properties = new Dictionary<string, object>();
 
         public object this[string propertyName]
         {
             get
             {
-                if (parameters.TryGetValue(propertyName, out object value))
+                if (properties.TryGetValue(propertyName, out object value))
                 {
                     return value;
                 }
@@ -92,11 +98,19 @@ namespace CbBuild.Xrm.FakeData.Presenters.Rules
             }
             set
             {
-                parameters[propertyName] = value;
+                properties[propertyName] = value;
             }
         }
 
+        [Browsable(false)]
         public ITreeNodeView View { get; private set; }
+
+        [Browsable(false)]
+        public Dictionary<string, object> Properties => this.properties;
+
+        [Browsable(false)]
+        public bool HasChildren => this.Rules?.Any() == true;
+
         public IRuleFactory _ruleFactory;
         protected List<IDisposable> _subscriptions = new List<IDisposable>();
 
@@ -200,6 +214,80 @@ namespace CbBuild.Xrm.FakeData.Presenters.Rules
         public void SetValidState()
         {
             this.View.SetIcon(IconKey);
+        }
+
+        public IEnumerator<KeyValuePair<string, object>> GetEnumerator()
+        {
+            return this.properties.GetEnumerator();
+        }
+
+        IEnumerator IEnumerable.GetEnumerator()
+        {
+            return this.properties.GetEnumerator();
+        }
+
+        public void LoadProperties(IDictionary<string, object> properties)
+        {
+            this.properties.Clear();
+            this.properties = new Dictionary<string, object>(properties);
+        }
+
+        public T GetProperty<T>(string name)
+        {
+            var value = this[name];
+            // TODO validation>?
+            if(value != null)
+            {
+                // return (T)Convert.ChangeType(value, typeof(T));
+
+                var t = typeof(T);
+
+                if (t.IsGenericType && t.GetGenericTypeDefinition().Equals(typeof(Nullable<>)))
+                {
+                    if (value == null)
+                    {
+                        return default(T);
+                    }
+
+                    t = Nullable.GetUnderlyingType(t);
+                }
+
+                if (t.IsEnum)
+                {
+                    if(value == null)
+                    {
+                        return (T)value;
+                    }
+
+                    // TODO co jak enum nie będzie intem
+                    return (T)Enum.ToObject(t, (int)value);
+                }
+
+                return (T)Convert.ChangeType(value, t);
+
+            }
+            return (T)value;
+            //return (T)value;
+        }
+
+        public void SetProperty(string name, object value)
+        {
+            this[name] = value;
+        }
+
+        public void RefreshProperties(IDictionary<string, RuleProperty> parameters)
+        {
+            var itemsToDelete = this.Properties.Keys.Except(parameters.Keys).ToList();
+            foreach (var itemToDelete in itemsToDelete)
+            {
+                this.Properties.Remove(itemToDelete);
+            }
+
+            var itemsToInitialize = parameters.Where(kvp => !this.Properties.ContainsKey(kvp.Key));
+            foreach (var itemToInitialize in itemsToInitialize)
+            {
+                this[itemToInitialize.Key] = itemToInitialize.Value.DefaultValue;
+            }
         }
     }
 }

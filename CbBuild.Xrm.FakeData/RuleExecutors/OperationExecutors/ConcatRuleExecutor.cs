@@ -1,6 +1,6 @@
 ﻿using System.Text;
 
-namespace CbBuild.Xrm.FakeData.RuleExecutors
+namespace CbBuild.Xrm.FakeData.RuleExecutors.OperationExecutors
 {
     public class ConcatRuleExecutor : FakedRuleExecutorBase
     {

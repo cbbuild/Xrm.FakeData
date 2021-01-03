@@ -1,4 +1,5 @@
-﻿using CbBuild.Xrm.FakeData.Presenters.Rules;
+﻿using CbBuild.Xrm.FakeData.Model;
+using CbBuild.Xrm.FakeData.Presenters.Rules;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
@@ -9,49 +10,64 @@ namespace CbBuild.Xrm.FakeData.Descriptors
     {
         public static IEnumerable<PropertyDescriptor> Generate(IRulePresenter rule)
         {
-            List<RuleParameter> result = GetRuleParameters(rule);
+            RulePropertyDictionary ruleProperties = GetRuleProperties(rule);
 
-            return result.Select(p => new RuleParameterPropertyDescriptor(p)).Cast<PropertyDescriptor>();
+            // Set default, and remove unused
+            // Should be called on properties change probably, but
+            // it is easier to maintain properties definition and defaults in one place.
+            rule.RefreshProperties(ruleProperties);
+
+            return ruleProperties.Select(kvp => new RuleParameterPropertyDescriptor(kvp.Value)).Cast<PropertyDescriptor>();
         }
 
-        private static List<RuleParameter> GetRuleParameters(IRulePresenter rule)
+        private static RulePropertyDictionary GetRuleProperties(IRulePresenter rule)
         {
-            var result = new List<RuleParameter>();
+            var properties = new RulePropertyDictionary();
 
             if (rule.RuleType == RulePresenterType.Root)
             {
-                result.Add(new RuleParameter("Locale", typeof(string)));
+                properties
+                    .InCategory(Categories.Common)
+                    .Add<LocaleType>(Properties.Locale, LocaleType.en_US);
             }
 
             if (rule.RuleType == RulePresenterType.Entity)
             {
-                result.Add(new RuleParameter("LogicalName"));
-                result.Add(new RuleParameter("Locale", typeof(string)));
+                properties
+                    .InCategory(Categories.Common)
+                    .Add(Properties.LogicalName)
+                    .Add<LocaleType>(Properties.Locale, LocaleType.en_US);
             }
 
-            if (rule.RuleType == RulePresenterType.Attribute)
+            if (rule.RuleType == RulePresenterType.Attribute
+                || rule.RuleType == RulePresenterType.Operation)
             {
-                // TODO parameters collection on change value (index) should refresh property grid?
-                var attr = (AttributeRulePresenter)rule;
-                if(rule.Operator == Model.RuleOperator.Generator
-                    && rule.Generator == Model.GeneratorType.Const)
+                var @operator = rule.GetProperty<RuleOperator?>(Properties.Operator);
+                var generator = rule.GetProperty<GeneratorType?>(Properties.Generator);
+
+                properties
+                    .InCategory(Categories.Common)
+                    .Add<RuleOperator>(Properties.Operator, RuleOperator.Generator);
+
+                if (@operator == RuleOperator.Generator || @operator == null)
                 {
-                    result.Add(new RuleParameter("Value"));
+                    properties
+                        .InCategory(Categories.Generator)
+                        .Add<GeneratorType>(Properties.Generator, GeneratorType.Const);
+                }
+
+                if ((@operator == RuleOperator.Generator || @operator == null)
+                    && (generator == GeneratorType.Const || generator == null))
+                {
+                    properties
+                        .InCategory(Categories.Generator)
+                        .Add(Properties.Value);
                 }
             }
 
-            if (rule.RuleType == RulePresenterType.Operation)
-            {
-                // TODO parameters collection on change value (index) should refresh property grid?
-                var attr = (OperationRulePresenter)rule;
-                if (rule.Operator == Model.RuleOperator.Generator
-                    && rule.Generator == Model.GeneratorType.Const)
-                {
-                    result.Add(new RuleParameter("Value"));
-                }
-            }
+            rule.RefreshProperties(properties);
 
-            return result;
+            return properties;
         }
     }
 }

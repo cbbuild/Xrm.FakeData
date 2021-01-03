@@ -1,4 +1,5 @@
 ﻿using CbBuild.Xrm.FakeData.Descriptors;
+using CbBuild.Xrm.FakeData.Model;
 using CbBuild.Xrm.FakeData.Services;
 using CbBuild.Xrm.FakeData.Views;
 using Reactive.EventAggregator;
@@ -15,9 +16,11 @@ namespace CbBuild.Xrm.FakeData.Presenters.Rules
                                       IMessageBoxService messageBoxService)
             : base(view, ruleFactory, eventAggregator, messageBoxService)
         {
+            this[Model.Properties.Operator] = RuleOperator.Generator;
+            this[Model.Properties.Generator] = GeneratorType.Const;
         }
 
-        public override string DisplayName => $"[{Operator}] {Name}".Trim();
+        public override string DisplayName => $"[{this.GetProperty<RuleOperator?>(Model.Properties.Operator)}] {Name}".Trim();
 
         public override RulePresenterType RuleType => RulePresenterType.Operation;
 

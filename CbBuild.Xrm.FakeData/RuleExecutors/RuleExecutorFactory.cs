@@ -1,6 +1,7 @@
 ﻿using Bogus;
 using CbBuild.Xrm.FakeData.Model;
 using CbBuild.Xrm.FakeData.Presenters.Rules;
+using CbBuild.Xrm.FakeData.RuleExecutors.OperationExecutors;
 using System;
 using System.Collections.Generic;
 
@@ -28,6 +29,7 @@ namespace CbBuild.Xrm.FakeData.RuleExecutors
             return executor;
         }
 
+        // TODO refactor this 2 methods
         // TODO childRULEEXECUTOR
         public IRuleExecutor Create(IRulePresenter rule, Faker faker)
         {
@@ -37,7 +39,13 @@ namespace CbBuild.Xrm.FakeData.RuleExecutors
             }
 
             var executor = CreateDedicatedExecutor(rule);
-            ((FakedRuleExecutorBase)executor).Initialize(rule, faker, this);
+            if (executor is FakedRuleExecutorBase)
+            {
+                ((FakedRuleExecutorBase)executor).Initialize(rule, new Faker(), this);
+            }
+            else
+                ((RuleExecutorBase)executor).Initialize(rule, this);
+            
             return executor;
         }
 
@@ -81,109 +89,50 @@ namespace CbBuild.Xrm.FakeData.RuleExecutors
 
         private IRuleExecutor CreateOperationRuleExecutor(IRulePresenter rule)
         {
-            if (rule.Operator == RuleOperator.Generator)
+            var @operator = rule.GetProperty<RuleOperator?>(Properties.Operator);
+
+            if (@operator == RuleOperator.Generator)
             {
-                if (GeneratorExecutors.Config.TryGetValue(rule.Generator, out IRuleExecutor executor))
+                var generator = rule.GetProperty<GeneratorType?>(Properties.Generator);
+                if (GeneratorExecutors.Config.TryGetValue(generator.Value, out IRuleExecutor executor))
                 {
                     return executor;
                 }
 
-                throw new KeyNotFoundException($"{rule.Generator} key not found in generator executors config");
+                throw new KeyNotFoundException($"{generator} key not found in generator executors config");
             }
 
-            if (rule.Operator == RuleOperator.Concat)
+            if (@operator == RuleOperator.Concat)
             {
                 return new ConcatRuleExecutor();
             }
 
-            if (rule.Operator == RuleOperator.Add)
+            if (@operator == RuleOperator.Add)
             {
                 return new AddRuleExecutor();
             }
 
-            if (rule.Operator == RuleOperator.Div)
+            if (@operator == RuleOperator.Div)
             {
-                return new DevRuleExecutor();
+                return new DivRuleExecutor();
             }
 
-            if (rule.Operator == RuleOperator.Mod)
+            if (@operator == RuleOperator.Mod)
             {
                 return new ModRuleExecutor();
             }
 
-            if (rule.Operator == RuleOperator.Multiply)
+            if (@operator == RuleOperator.Multiply)
             {
                 return new MultiplyRuleExecutor();
             }
 
-            if (rule.Operator == RuleOperator.Sub)
+            if (@operator == RuleOperator.Sub)
             {
                 return new SubRuleExecutor();
             }
 
-            throw new NotImplementedException("Operator not supported");
-        }
-    }
-
-    public class SubRuleExecutor : FakedRuleExecutorBase
-    {
-        protected override IRuleExecutorResult ExecuteLogic()
-        {
-            decimal? value = null;
-
-            foreach (var child in rule.Rules)
-            {
-                var executor = factory.Create(child, faker);
-                var childResult = executor.Execute().CastTo<decimal>();
-
-                if (childResult.HasErrors)
-                {
-                    return childResult;
-                }
-
-                if (!value.HasValue)
-                {
-                    value = childResult.Value;
-                }
-                else
-                {
-                    value -= childResult.Value;
-                }
-            }
-
-            return new RuleExecutorResult(value ?? 0);
-        }
-    }
-
-    public class MultiplyRuleExecutor : FakedRuleExecutorBase
-    {
-        protected override IRuleExecutorResult ExecuteLogic()
-        {
-            throw new NotImplementedException();
-        }
-    }
-
-    public class ModRuleExecutor : FakedRuleExecutorBase
-    {
-        protected override IRuleExecutorResult ExecuteLogic()
-        {
-            throw new NotImplementedException();
-        }
-    }
-
-    public class AddRuleExecutor : FakedRuleExecutorBase
-    {
-        protected override IRuleExecutorResult ExecuteLogic()
-        {
-            throw new NotImplementedException();
-        }
-    }
-
-    public class DevRuleExecutor : FakedRuleExecutorBase
-    {
-        protected override IRuleExecutorResult ExecuteLogic()
-        {
-            throw new NotImplementedException();
+            return new InvalidRuleExecutor("Operator required");
         }
     }
 }

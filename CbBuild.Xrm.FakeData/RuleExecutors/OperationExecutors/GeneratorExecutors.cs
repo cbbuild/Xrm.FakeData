@@ -5,8 +5,9 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 
-namespace CbBuild.Xrm.FakeData.RuleExecutors
+namespace CbBuild.Xrm.FakeData.RuleExecutors.OperationExecutors
 {
+    // TODO custom namespace?
     internal static class GeneratorExecutors
     {
         public static readonly ReadOnlyDictionary<GeneratorType, IRuleExecutor> Config = new ReadOnlyDictionary<GeneratorType, IRuleExecutor>(
@@ -17,7 +18,7 @@ namespace CbBuild.Xrm.FakeData.RuleExecutors
                     { GeneratorType.Address, AddressExecutor }
             });
 
-        public static IRuleExecutor ConstExecutor => Create((f, r) => r[Parameters.Value]);
+        public static IRuleExecutor ConstExecutor => Create((f, r) => r[Properties.Value]);
         public static IRuleExecutor IndexExecutor => Create(f => f.IndexFaker);
         public static IRuleExecutor AddressExecutor => Create(f => f.Address.FullAddress()); // TODO take rule additional parameters
 

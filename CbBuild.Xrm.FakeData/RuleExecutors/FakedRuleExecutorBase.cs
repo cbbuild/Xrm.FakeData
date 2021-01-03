@@ -1,6 +1,7 @@
 ﻿using Bogus;
 using CbBuild.Xrm.FakeData.Presenters.Rules;
 using System;
+using System.Collections.Generic;
 
 namespace CbBuild.Xrm.FakeData.RuleExecutors
 {
@@ -66,6 +67,16 @@ namespace CbBuild.Xrm.FakeData.RuleExecutors
         {
             base.Initialize(rule, factory);
             this.faker = faker;
+        }
+
+        protected IEnumerable<IRuleExecutorResult<T>> ExecuteChildRules<T>()
+        {
+            foreach (var child in rule.Rules)
+            {
+                var executor = factory.Create(child, faker);
+                var childResult = executor.Execute().CastTo<T>();
+                yield return childResult;
+            }
         }
     }
 }

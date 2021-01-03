@@ -6,9 +6,9 @@ namespace CbBuild.Xrm.FakeData.Descriptors
 {
     internal class RuleParameterPropertyDescriptor : PropertyDescriptor
     {
-        public RuleParameter CustomField { get; private set; }
+        public RuleProperty CustomField { get; private set; }
 
-        public RuleParameterPropertyDescriptor(RuleParameter customField)
+        public RuleParameterPropertyDescriptor(RuleProperty customField)
             : base(customField.Name, new Attribute[] { new CategoryAttribute(customField.Category) })
         {
             CustomField = customField;
@@ -30,8 +30,17 @@ namespace CbBuild.Xrm.FakeData.Descriptors
         public override object GetValue(object component)
         {
             IRulePresenter rule = (IRulePresenter)component;
-            return rule[CustomField.Name] ?? (CustomField.DataType.IsValueType ?
-                (Object)Activator.CreateInstance(CustomField.DataType) : null);
+
+            //if(!rule.Properties.ContainsKey(CustomField.Name))
+            //{
+            //    rule[CustomField.Name] = CustomField.DefaultValue;
+            //}
+
+            return rule[CustomField.Name];
+
+
+            //return  fieldValue ?? (CustomField.DataType.IsValueType ?
+            //    (Object)Activator.CreateInstance(CustomField.DataType) : null);
         }
 
         public override bool IsReadOnly
@@ -63,7 +72,7 @@ namespace CbBuild.Xrm.FakeData.Descriptors
 
         public override bool ShouldSerializeValue(object component)
         {
-            return false;
+            return true;
         }
     }
 }

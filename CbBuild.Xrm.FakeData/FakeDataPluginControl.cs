@@ -18,6 +18,7 @@ namespace CbBuild.Xrm.FakeData
         private Settings mySettings;
         private readonly IRulesTreeView rulesTreeView;
         private IEventAggregator eventAggregator = null;
+        private readonly IRulesTreePresenter rulesTreePresenter;
 
         public FakeDataPluginControl(
             IEventAggregator eventAggregator,
@@ -45,8 +46,9 @@ namespace CbBuild.Xrm.FakeData
             rulePreviewControl.Dock = DockStyle.Fill;
 
             this.eventAggregator = eventAggregator;
+            this.rulesTreePresenter = rulesTreePresenter;
 
-            rulesTreePresenter.CreateRootTreeRule();
+            this.OnCloseTool += new System.EventHandler(MyPluginControl_OnCloseTool);
         }
 
         private void MyPluginControl_Load(object sender, EventArgs e)
@@ -64,11 +66,17 @@ namespace CbBuild.Xrm.FakeData
             {
                 LogInfo("Settings found and loaded");
             }
+
+            rulesTreePresenter.CreateRootTreeRule(mySettings);
+
         }
 
         private void tsbClose_Click(object sender, EventArgs e)
         {
-            CloseTool();
+         
+            SettingsManager.Instance.Save(GetType(), mySettings); // TODO czy to potrzebne?
+
+            base.CloseTool();
         }
 
         private void tsbSample_Click(object sender, EventArgs e)
@@ -112,6 +120,19 @@ namespace CbBuild.Xrm.FakeData
         /// <param name="e"></param>
         private void MyPluginControl_OnCloseTool(object sender, EventArgs e)
         {
+            mySettings.RootNode = rulesTreePresenter.GetNodeSettings();
+
+            // Before leaving, save the settings
+            SettingsManager.Instance.Save(GetType(), mySettings);
+        }
+
+        public override void ClosingPlugin(PluginCloseInfo info)
+        {
+            // TODO
+            base.ClosingPlugin(info);
+
+            mySettings.RootNode = rulesTreePresenter.GetNodeSettings();
+
             // Before leaving, save the settings
             SettingsManager.Instance.Save(GetType(), mySettings);
         }
