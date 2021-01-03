@@ -25,6 +25,7 @@ namespace CbBuild.Xrm.FakeData.Presenters.Rules
         Dictionary<string, object> Properties { get; }
 
         T GetProperty<T>(string name);
+
         void SetProperty(string name, object value);
 
         void LoadProperties(IDictionary<string, object> properties);
@@ -235,39 +236,29 @@ namespace CbBuild.Xrm.FakeData.Presenters.Rules
         public T GetProperty<T>(string name)
         {
             var value = this[name];
-            // TODO validation>?
-            if(value != null)
+            // TODO additional validation>?
+            var t = typeof(T);
+
+            if (t.IsGenericType && t.GetGenericTypeDefinition().Equals(typeof(Nullable<>)))
             {
-                // return (T)Convert.ChangeType(value, typeof(T));
-
-                var t = typeof(T);
-
-                if (t.IsGenericType && t.GetGenericTypeDefinition().Equals(typeof(Nullable<>)))
+                if (value == null)
                 {
-                    if (value == null)
-                    {
-                        return default(T);
-                    }
-
-                    t = Nullable.GetUnderlyingType(t);
+                    return default(T);
                 }
 
-                if (t.IsEnum)
-                {
-                    if(value == null)
-                    {
-                        return (T)value;
-                    }
-
-                    // TODO co jak enum nie będzie intem
-                    return (T)Enum.ToObject(t, (int)value);
-                }
-
-                return (T)Convert.ChangeType(value, t);
-
+                t = Nullable.GetUnderlyingType(t);
             }
-            return (T)value;
-            //return (T)value;
+
+            if (t.IsEnum)
+            {
+                if (value == null)
+                {
+                    return (T)value;
+                }
+                return (T)Enum.ToObject(t, value);
+            }
+
+            return (T)Convert.ChangeType(value, t);
         }
 
         public void SetProperty(string name, object value)
